@@ -4,11 +4,11 @@ import {
     Locator
 } from "playwright";
 
-import { InterceptPage } from "./intercept";
-import { ViewPage } from "./view";
-import { ModifyPage } from "./modify";
-import { SendPage } from "./send";
-import { SettingsPage } from "./settings";
+import { InterceptPage } from "./intercept.js";
+import { ViewPage } from "./view.js";
+import { ModifyPage } from "./modify.js";
+import { SendPage } from "./send.js";
+import { SettingsPage } from "./settings.js";
 
 const PAGES = {
     intercept: {
