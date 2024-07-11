@@ -64,11 +64,14 @@ export async function closeWindow(id: string) {
 }
 
 // Robot.js has issues with chars that require shift on Linux so we setup
-// an alternate solution to this here:
-export async function typeStringDelayed(text: string, cpm: number) {
-    const cps = cpm / 60;
-    const delayBetweenChars = 1 / cps;
-    const delayMillis = delayBetweenChars * 1000;
+// alternate solutions to this here:
+export async function enterString(text: string) {
+    await zx.$`xdotool type --delay 0 ${text}`;
+}
 
-    await zx.$`xdotool type --delay ${delayMillis} ${text}`;
+export async function typeString(text: string, duration: number) {
+    const chars = text.length;
+    const durationPerChar = Math.floor(duration / chars);
+    const xDotDelay = 2*durationPerChar; // Very oddly, xdot seems to half its given delay? Workaround
+    await zx.$`xdotool type --delay ${xDotDelay} ${text}`;
 }
