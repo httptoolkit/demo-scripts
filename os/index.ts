@@ -4,9 +4,18 @@ import robot from '@jitsi/robotjs';
 import * as linuxMethods from './linux.js';
 import { delay } from '@httptoolkit/util';
 
-type OsControls = typeof robot & {
-    getNextNewWindowId(): Promise<string>;
-    getWindowIdByName(name: string): Promise<string>;
+export interface OsWindow {
+    id: string;
+    desktop: string;
+    name: string;
+    position: { x: number, y: number };
+    size: { h: number, w: number };
+}
+
+interface OsControls {
+    getNextNewWindow(): Promise<OsWindow>;
+    getWindowByName(name: string): Promise<OsWindow>;
+    getWindowById(id: string): Promise<OsWindow>;
 
     focusWindow(id: string): Promise<void>;
     closeWindow(id: string): Promise<void>;

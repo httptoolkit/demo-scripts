@@ -18,13 +18,21 @@ async function getCurrentDesktopId() {
 }
 
 async function getOpenWindows() {
-    const windowLines = (await wmctrl('-l')).split('\n');
+    const windowLines = (await wmctrl('-lG')).split('\n');
     return windowLines.map((win) => {
-        const parts = win.split(/\s+/);
+        const [id, desktop, x, y, h, w, _hostname, ...appname] = win.split(/\s+/);
         return {
-            id: parts[0],
-            desktop: parts[1],
-            name: parts.slice(3).join(' ')
+            id,
+            desktop,
+            name: appname.join(' '),
+            position: {
+                x: parseInt(x, 10),
+                y: parseInt(y, 10)
+            },
+            size: {
+                h: parseInt(h, 10),
+                w: parseInt(w, 10)
+            }
         }
     });
 }
@@ -35,24 +43,31 @@ export async function getOpenWindowsOnCurrentDesktop() {
     return windows.filter((win) => win.desktop === currentDesktopId);
 }
 
-export async function getNextNewWindowId() {
+export async function getNextNewWindow() {
     const initialWindows = await getOpenWindowsOnCurrentDesktop();
 
     while (true) {
-        await delay(10);
+        await delay(500);
         const currentWindows = await getOpenWindowsOnCurrentDesktop();
         const newWindows = currentWindows.filter((win) =>
             !initialWindows.find((initialWin) => initialWin.id === win.id)
         );
-        if (newWindows.length > 0) return newWindows[0].id;
+        if (newWindows.length > 0) return newWindows[0];
     }
 }
 
-export async function getWindowIdByName(name: string) {
+export async function getWindowByName(name: string) {
     const windows = await getOpenWindowsOnCurrentDesktop();
     const window = windows.find((win) => win.name === name);
     if (!window) throw new Error(`${name} window could not be found`);
-    return window.id;
+    return window;
+}
+
+export async function getWindowById(id: string) {
+    const windows = await getOpenWindowsOnCurrentDesktop();
+    const window = windows.find((win) => win.id === id);
+    if (!window) throw new Error(`${id} window could not be found`);
+    return window;
 }
 
 export async function focusWindow(id: string) {
