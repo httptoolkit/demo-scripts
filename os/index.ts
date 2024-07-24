@@ -2,6 +2,7 @@ import * as os from 'os';
 import robot from '@jitsi/robotjs';
 
 import * as linuxMethods from './linux.js';
+import * as macMethods from './mac.js';
 import { delay } from '@httptoolkit/util';
 
 export interface OsWindow {
@@ -30,7 +31,14 @@ interface OsControls {
 }
 
 export function getOsControls(): OsControls {
-    const baseMethods = {
+    const osMethods = os.platform() === 'linux'
+            ? linuxMethods
+        : os.platform() === 'darwin'
+            ? macMethods
+        : (() => { throw new Error(`Unsupported platform: ${os.platform()}`) })();
+
+    return {
+        ...osMethods,
         async setMouse(x: number, y: number) {
             robot.moveMouse(x, y);
             await delay(0);
@@ -58,14 +66,29 @@ export function getOsControls(): OsControls {
         keyTap(key: string) {
             robot.keyTap(key);
         },
+        async getNextNewWindow() {
+            const initialWindows = await osMethods.getVisibleOpenWindows();
+
+            while (true) {
+                await delay(500);
+                const currentWindows = await osMethods.getVisibleOpenWindows();
+                const newWindows = currentWindows.filter((win) =>
+                    !initialWindows.find((initialWin) => initialWin.id === win.id)
+                );
+                if (newWindows.length > 0) return newWindows[0];
+            }
+        },
+        async getWindowByName(name: string) {
+            const windows = await osMethods.getVisibleOpenWindows();
+            const window = windows.find((win) => win.name === name);
+            if (!window) throw new Error(`${name} window could not be found`);
+            return window;
+        },
+        async getWindowById(id: string) {
+            const windows = await osMethods.getVisibleOpenWindows();
+            const window = windows.find((win) => win.id === id);
+            if (!window) throw new Error(`${id} window could not be found`);
+            return window;
+        }
     };
-
-    if (os.platform() === 'linux') {
-        return {
-            ...baseMethods,
-            ...linuxMethods
-        };
-    }
-
-    throw new Error(`Unsupported platform: ${os.platform()}`);
 }

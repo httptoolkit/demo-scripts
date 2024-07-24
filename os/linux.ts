@@ -17,7 +17,7 @@ async function getCurrentDesktopId() {
     return desktopId;
 }
 
-async function getOpenWindows() {
+async function getAllOpenWindows() {
     const windowLines = (await wmctrl('-lG')).split('\n');
     return windowLines.map((win) => {
         const [id, desktop, x, y, h, w, _hostname, ...appname] = win.split(/\s+/);
@@ -37,37 +37,10 @@ async function getOpenWindows() {
     });
 }
 
-export async function getOpenWindowsOnCurrentDesktop() {
+export async function getVisibleOpenWindows() {
     const currentDesktopId = await getCurrentDesktopId();
-    const windows = await getOpenWindows();
+    const windows = await getAllOpenWindows();
     return windows.filter((win) => win.desktop === currentDesktopId);
-}
-
-export async function getNextNewWindow() {
-    const initialWindows = await getOpenWindowsOnCurrentDesktop();
-
-    while (true) {
-        await delay(500);
-        const currentWindows = await getOpenWindowsOnCurrentDesktop();
-        const newWindows = currentWindows.filter((win) =>
-            !initialWindows.find((initialWin) => initialWin.id === win.id)
-        );
-        if (newWindows.length > 0) return newWindows[0];
-    }
-}
-
-export async function getWindowByName(name: string) {
-    const windows = await getOpenWindowsOnCurrentDesktop();
-    const window = windows.find((win) => win.name === name);
-    if (!window) throw new Error(`${name} window could not be found`);
-    return window;
-}
-
-export async function getWindowById(id: string) {
-    const windows = await getOpenWindowsOnCurrentDesktop();
-    const window = windows.find((win) => win.id === id);
-    if (!window) throw new Error(`${id} window could not be found`);
-    return window;
 }
 
 export async function focusWindow(id: string) {
