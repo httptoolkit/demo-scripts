@@ -35,27 +35,11 @@ export async function closeWindow(id: string) {
 }
 
 export async function enterString(text: string) {
-    const osaScript = zx.$`osascript`.stdio('pipe');
-    osaScript.stdin.end(
-        `tell application "System Events" to keystroke "${text}"`
-    );
-    await osaScript;
+    await zx.$`osascript os/applescripts/enter-string.applescript ${text}`;
 }
 
 export async function typeString(text: string, duration: number) {
     const chars = text.length;
     const durationPerChar = Math.floor(duration / chars);
-
-    const osaScript = zx.$`osascript`.stdio('pipe');
-    osaScript.stdin.end(`
-        tell application "System Events"
-            set theText to "${text}"
-            repeat with i from 1 to length of theText
-                set c to text i of theText
-                delay ${durationPerChar / 1000}
-                keystroke c
-            end repeat
-        end tell
-    `);
-    await osaScript;
+    await zx.$`osascript os/applescripts/type-string.applescript ${text} ${durationPerChar}`;
 }
