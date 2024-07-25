@@ -15,7 +15,7 @@ export interface OsWindow {
 
 interface OsControls {
     getNextNewWindow(): Promise<OsWindow>;
-    getWindowByName(name: string): Promise<OsWindow>;
+    getWindowByName(name: RegExp): Promise<OsWindow>;
     getWindowById(id: string): Promise<OsWindow>;
 
     focusWindow(id: string): Promise<void>;
@@ -78,9 +78,9 @@ export function getOsControls(): OsControls {
                 if (newWindows.length > 0) return newWindows[0];
             }
         },
-        async getWindowByName(name: string) {
+        async getWindowByName(name: RegExp) {
             const windows = await osMethods.getVisibleOpenWindows();
-            const window = windows.find((win) => win.name === name);
+            const window = windows.find((win) => win.name.match(name));
             if (!window) throw new Error(`${name} window could not be found`);
             return window;
         },

@@ -10,7 +10,7 @@ export async function getVisibleOpenWindows() {
     const windows = output.split('---').slice(0, -1);
 
     return windows.map((win) => {
-        const [id, name, position, size] = win.split('\n')
+        const [id, name, position, size] = win.trim().split('\n')
             .map((line) => line.split(':').slice(1).join(':'));
 
         const [x, y] = position.split('x').map((n) => parseInt(n, 10));
@@ -26,12 +26,14 @@ export async function getVisibleOpenWindows() {
     });
 }
 
-export async function focusWindow(id: string) {
-    await zx.$`osascript -e 'tell application "System Events" to set frontmost of first process whose id is ${id} to true'`;
+export async function focusWindow(windowId: string) {
+    const [procId, windowIndex] = windowId.split('-');
+    await zx.$`osascript os/applescripts/focus-window.applescript ${procId} ${windowIndex}`;
 }
 
-export async function closeWindow(id: string) {
-    await zx.$`osascript -e 'tell application "System Events" to close first window of first process whose id is ${id}'`;
+export async function closeWindow(windowId: string) {
+    const [procId, windowIndex] = windowId.split('-');
+    await zx.$`osascript os/applescripts/close-window.applescript ${procId} ${windowIndex}`;
 }
 
 export async function enterString(text: string) {

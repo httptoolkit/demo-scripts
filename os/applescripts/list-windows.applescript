@@ -3,18 +3,16 @@ tell application "System Events"
 
 	repeat with proc in (processes where visible is true)
         set pid to id of proc
+        set procWindows to windows of proc
+        set winIndex to 1
 
-        -- For now we don't support this, because windows have no ids
-        if (count of windows) > 1 then
-            error "More than one " & name of proc & " window is open"
-        end if
-
-        -- Given the above, the below will run either 0 or 1 times
-        repeat with w in windows
-            log "id:" & pid
+        -- Skip any processes without windows
+        repeat with win in procWindows
+            log "id:" & pid & "-" & winIndex
+            set winIndex to winIndex + 1
             log "name:" & name of proc
 
-            set {winPosition, winSize} to {position, size} of w
+            set {winPosition, winSize} to {position, size} of win
             set {posX, posY} to winPosition
             set {sizeW, sizeH} to winSize
 
