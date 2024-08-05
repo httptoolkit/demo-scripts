@@ -1,3 +1,4 @@
+import * as fs from 'fs/promises';
 import { delay } from '@httptoolkit/util';
 import { chromium, Page } from 'playwright';
 import * as zx from 'zx';
@@ -6,9 +7,10 @@ zx.$.verbose = true; // Log all commands
 
 export async function launchChrome(
     url: string,
-    { position, size }: {
+    { position, size, tokens }: {
         position?: { x: number, y: number },
-        size?: { width: number, height: number }
+        size?: { width: number, height: number },
+        tokens?: { refreshToken: string, accessToken: string }
     } = {}
 ) {
     const browser = await chromium.launch({
@@ -22,6 +24,13 @@ export async function launchChrome(
     const context = await browser.newContext({
         viewport: null
     });
+    if (tokens) {
+        await context.addInitScript(`
+            window.localStorage.setItem('tokens', JSON.stringify(${
+                JSON.stringify(tokens)
+            }));
+        `);
+    }
     const page = await context.newPage();
     await page.goto(url);
 
@@ -58,13 +67,26 @@ export async function runDemo(url: string, demo: (page: Page) => Promise<void>) 
     const HEIGHT = 810;
     const CHROME_TOP_HEIGHT = 87;
 
+    const tokens = await fs.readFile('.tokens.json', 'utf-8')
+        .then((data) => JSON.parse(data))
+        .catch((e) => {
+            console.error(e);
+            return false;
+        });
+    if (!tokens || !(tokens.refreshToken && tokens.accessToken)) {
+        throw new Error(
+            `No usable tokens were found in .tokens.json`
+        );
+    }
+
     const RECORD_VIDEO = false;
 
     const { browser, page } = await launchChrome(
         url,
         {
             position: { x: LEFT, y: TOP - CHROME_TOP_HEIGHT },
-            size: { width: WIDTH, height: HEIGHT + CHROME_TOP_HEIGHT }
+            size: { width: WIDTH, height: HEIGHT + CHROME_TOP_HEIGHT },
+            tokens
         }
     );
 
