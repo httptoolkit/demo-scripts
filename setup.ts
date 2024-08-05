@@ -60,12 +60,17 @@ async function recordScreen(
     }
 }
 
-export async function runDemo(url: string, demo: (page: Page) => Promise<void>) {
+export async function runDemo(
+    demo: (page: Page) => Promise<void>,
+    cleanup: () => Promise<void>
+) {
     const TOP = 200;
     const LEFT = 100;
     const WIDTH = 1440;
     const HEIGHT = 810;
     const CHROME_TOP_HEIGHT = 87;
+
+    const URL = process.env.HTK_URL || 'http://localhost:8080';
 
     const tokens = await fs.readFile('.tokens.json', 'utf-8')
         .then((data) => JSON.parse(data))
@@ -82,7 +87,7 @@ export async function runDemo(url: string, demo: (page: Page) => Promise<void>) 
     const RECORD_VIDEO = false;
 
     const { browser, page } = await launchChrome(
-        url,
+        URL,
         {
             position: { x: LEFT, y: TOP - CHROME_TOP_HEIGHT },
             size: { width: WIDTH, height: HEIGHT + CHROME_TOP_HEIGHT },
@@ -95,7 +100,11 @@ export async function runDemo(url: string, demo: (page: Page) => Promise<void>) 
         : { stop: () => {} };
     console.log("Starting demo");
 
-    await demo(page);
+    try {
+        await demo(page);
+    } finally {
+        await cleanup().catch(() => {});
+    }
 
     console.log("Demo completed");
     browser.close();

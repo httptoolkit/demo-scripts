@@ -69,4 +69,12 @@ export class HttpToolkit {
 
         return new page.PageClass(this.page) as InstanceType<typeof PAGES[P]['PageClass']>;
     }
+
+    openFind() {
+        if (process.platform === 'darwin') {
+            return this.page.keyboard.press('Meta+F');
+        } else {
+            return this.page.keyboard.press('Control+F');
+        }
+    }
 }

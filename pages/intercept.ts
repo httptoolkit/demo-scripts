@@ -6,8 +6,11 @@ export class InterceptPage {
         private page: Page
     ) {}
 
-    clickInterceptor(name: string) {
-        this.page.getByRole('button', { name: name }).click();
+    getInterceptorButton(name: string) {
+        return this.page.getByRole('button', { name: name })
+            // Match the heading specifically:
+            .filter({ has: this.page.getByRole('heading', { name, exact: true }) })
+            .first();
     }
 
 }
