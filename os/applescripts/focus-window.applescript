@@ -3,11 +3,7 @@ on run argv
     set windowIndex to (item 2 of argv) as integer
 
     tell application "System Events"
-        set proc to first process whose id is procId
-        set procWindows to windows of proc
-        set win to item windowIndex of procWindows
-
-        set frontmost of proc to true
-        perform action "AXRaise" of win
+        set frontmost of first process whose unix id is procId to true
+        perform action "AXRaise" of (item windowIndex of (windows of (first process whose unix id is procId)))
     end tell
 end run

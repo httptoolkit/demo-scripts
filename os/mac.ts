@@ -4,7 +4,8 @@ export async function getVisibleOpenWindows() {
     const result = await zx.$`osascript os/applescripts/list-windows.applescript`;
     if (result.exitCode !== 0) {
         console.error(result.stderr);
-        throw new Error(`Window listing failed with exit code ${result.exitCode}`);
+        console.error(`Window listing failed with exit code ${result.exitCode}`);
+        return [];
     }
     const output = result.stderr;
     const windows = output.split('---').slice(0, -1);
