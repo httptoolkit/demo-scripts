@@ -30,8 +30,8 @@ async function getAllOpenWindows() {
                 y: parseInt(y, 10)
             },
             size: {
-                h: parseInt(h, 10),
-                w: parseInt(w, 10)
+                height: parseInt(h, 10),
+                width: parseInt(w, 10)
             }
         }
     });

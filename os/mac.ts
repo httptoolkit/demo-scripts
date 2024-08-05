@@ -22,7 +22,7 @@ export async function getVisibleOpenWindows() {
             desktop: '1',
             name,
             position: { x, y },
-            size: { w, h }
+            size: { width: w, height: h }
         };
     });
 }

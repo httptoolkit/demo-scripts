@@ -10,7 +10,7 @@ export interface OsWindow {
     desktop: string;
     name: string;
     position: { x: number, y: number };
-    size: { h: number, w: number };
+    size: { height: number, width: number };
 }
 
 interface OsControls {
