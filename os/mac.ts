@@ -1,4 +1,5 @@
 import * as zx from 'zx';
+import { Dimensions } from '../browser-utils.js';
 
 export async function getVisibleOpenWindows() {
     const result = await zx.$`osascript os/applescripts/list-windows.applescript`;
@@ -35,6 +36,18 @@ export async function focusWindow(windowId: string) {
 export async function closeWindow(windowId: string) {
     const [procId, windowIndex] = windowId.split('-');
     await zx.$`osascript os/applescripts/close-window.applescript ${procId} ${windowIndex}`;
+}
+
+export async function setWindowDimensions(
+    windowId: string,
+    { x, y, width, height }: Dimensions
+) {
+    const [procId, windowIndex] = windowId.split('-');
+    await zx.$`osascript os/applescripts/set-window-dimensions.applescript ${
+        procId
+    } ${
+        windowIndex
+    } ${x} ${y} ${width} ${height}`;
 }
 
 export async function enterString(text: string) {

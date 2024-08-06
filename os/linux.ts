@@ -1,5 +1,6 @@
 import { delay } from '@httptoolkit/util';
 import * as zx from 'zx';
+import { Dimensions } from '../browser-utils.js';
 
 async function wmctrl(...args: string[]) {
     const result = await zx.$`wmctrl ${args}`;
@@ -49,6 +50,13 @@ export async function focusWindow(id: string) {
 
 export async function closeWindow(id: string) {
     await wmctrl('-i', '-c', id);
+}
+
+export async function setWindowDimensions(
+    id: string,
+    { x, y, width, height }: Dimensions
+) {
+    await wmctrl('-i', '-r', id, '-e', `0,${x},${y},${width},${height}`);
 }
 
 // Robot.js has issues with chars that require shift on Linux so we setup

@@ -1,9 +1,10 @@
 import * as os from 'os';
 import robot from '@jitsi/robotjs';
+import { delay } from '@httptoolkit/util';
 
 import * as linuxMethods from './linux.js';
 import * as macMethods from './mac.js';
-import { delay } from '@httptoolkit/util';
+import { Dimensions } from '../browser-utils.js';
 
 export interface OsWindow {
     id: string;
@@ -20,6 +21,7 @@ interface OsControls {
 
     focusWindow(id: string): Promise<void>;
     closeWindow(id: string): Promise<void>;
+    setWindowDimensions(id: string, dimensions: Dimensions): Promise<void>;
 
     setMouse(x: number, y: number): Promise<void>;
     slideMouse(x: number, y: number, duration: number): Promise<void>;
