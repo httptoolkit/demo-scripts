@@ -32,7 +32,7 @@ export async function launchChrome(
         `);
     }
     const page = await context.newPage();
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
 
     return { browser, page };
 }
