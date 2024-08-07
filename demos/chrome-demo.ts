@@ -63,7 +63,7 @@ await runDemo(async (page) => {
     await osControls.typeString('https://github.com', 500);
     await delay(500);
     osControls.keyTap('enter');
-    await delay(2000);
+    await delay(2500);
 
     // --- Filter & view traffic ---
 
@@ -120,7 +120,11 @@ await runDemo(async (page) => {
     await htk.openFind();
     await delay(1000);
     await osControls.typeString('Build from', 500);
-    await delay(1000);
+    await delay(500);
+    await moveToAndClick(responseBody.getEditor().getNextMatchButton());
+    await moveToAndClick(responseBody.getEditor().getNextMatchButton(), { moveDuration: 250 });
+    await moveToAndClick(responseBody.getEditor().getNextMatchButton(), { moveDuration: 250 });
+    await delay(1500);
 
     // --- Create a mock rule ---
 
@@ -194,7 +198,7 @@ await runDemo(async (page) => {
     await osControls.focusWindow(chromeWindow.id);
     await delay(1000);
     await moveToAndClick(getRefreshButtonCoords(chromeWindow), { window: 'screen', clickPause: 1000 });
-    await delay(500); // Crowd goes wild, clap clap clap, FIN
+    await delay(4000); // Crowd goes wild, clap clap clap, FIN
 }, async () => {
     if (chromeWindow) {
         await osControls.closeWindow(chromeWindow.id);

@@ -65,4 +65,8 @@ class Editor {
         return this.editor.locator('.monaco-scrollable-element').first();
     }
 
+    getNextMatchButton() {
+        return this.editor.getByLabel('Next Match').first();
+    }
+
 }
