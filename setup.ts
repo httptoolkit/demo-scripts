@@ -43,19 +43,18 @@ async function recordScreen(
 ) {
     zx.$.verbose = true;
     await zx.$`rm -f ${output}`;
-    const recording = zx.$`screencapture ${[
-        '-v', // Record video
-        '-C', // Show cursor
-        '-R', `${left},${top},${width},${height}`, // Position and size
+    const recording = zx.$`ffmpeg ${[
+        '-f', 'avfoundation', // Use AVFoundation (Mac) input
+        '-capture_cursor', '1', // Show the mouse
+        '-i', '0:0', // Capture screen 0
+        '-vf', `crop=${width}:${height}:${left}:${top}`, // Crop to the desired area
         output // Output path
     ]}`;
+    console.log('Recording started');
 
-    // Recording stops on any input, including closing stdin. We have to get stdin here
-    // synchronously, or zx won't set up a stdin pipe (it'll inherit instead).
-    const recordingInput = recording.stdin;
     return {
         stop: function stopRecording() {
-            recordingInput.end();
+            recording.kill();
         }
     }
 }
@@ -96,7 +95,7 @@ export async function runDemo(
     );
 
     const recording = RECORD_VIDEO
-        ? await recordScreen({ top: TOP, left: LEFT, width: WIDTH, height: HEIGHT }, 'output.mov')
+        ? await recordScreen({ top: TOP, left: LEFT, width: WIDTH, height: HEIGHT }, 'output.mkv')
         : { stop: () => {} };
     console.log("Starting demo");
 
