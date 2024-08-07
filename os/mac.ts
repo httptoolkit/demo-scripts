@@ -2,10 +2,13 @@ import * as zx from 'zx';
 import { Dimensions } from '../browser-utils.js';
 
 export async function getVisibleOpenWindows() {
-    const result = await zx.$`osascript os/applescripts/list-windows.applescript`;
-    if (result.exitCode !== 0) {
-        console.error(result.stderr);
-        console.error(`Window listing failed with exit code ${result.exitCode}`);
+    const result = await zx.$`osascript os/applescripts/list-windows.applescript`.catch((e) => {
+        console.log(e);
+        return null;
+    });
+    if (!result || result.exitCode !== 0) {
+        console.error(result?.stderr);
+        console.error(`Window listing failed with exit code ${result?.exitCode}`);
         return [];
     }
     const output = result.stderr;
