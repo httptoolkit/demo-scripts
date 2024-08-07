@@ -48,13 +48,15 @@ await runDemo(async (page) => {
 
     await moveToAndClick(interceptPage.getInterceptorButton('Chrome'));
     chromeWindow = await chromePromise;
-
-    // Wait & reload position to handle shifting relayout on Linux:
-    await delay(500);
+    await osControls.setWindowDimensions(chromeWindow.id, {
+        x: htkWindow.position.x + 400,
+        y: htkWindow.position.y + 200,
+        width: htkWindow.size.width - 425,
+        height: htkWindow.size.height - 250
+    });
+    await delay(100);
     chromeWindow = await osControls.getWindowById(chromeWindow.id);
-
-    osControls.focusWindow(chromeWindow.id);
-    await delay(500);
+    await osControls.focusWindow(chromeWindow.id);
     await moveToAndClick(getUrlBarCoords(chromeWindow), { window: 'screen' });
 
     await delay(100);
