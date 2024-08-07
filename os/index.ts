@@ -1,4 +1,5 @@
 import * as os from 'os';
+import * as zx from 'zx';
 import robot from '@jitsi/robotjs';
 import { delay } from '@httptoolkit/util';
 
@@ -22,6 +23,7 @@ interface OsControls {
     focusWindow(id: string): Promise<void>;
     closeWindow(id: string): Promise<void>;
     setWindowDimensions(id: string, dimensions: Dimensions): Promise<void>;
+    killProcess(procId: string): Promise<void>;
 
     setMouse(x: number, y: number): Promise<void>;
     slideMouse(x: number, y: number, duration: number): Promise<void>;
@@ -91,6 +93,9 @@ export function getOsControls(): OsControls {
             const window = windows.find((win) => win.id === id);
             if (!window) throw new Error(`${id} window could not be found`);
             return window;
+        },
+        async killProcess(procId: string) {
+            await zx.$`kill ${procId}`;
         }
     };
 }

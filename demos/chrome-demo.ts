@@ -194,6 +194,13 @@ await runDemo(async (page) => {
     await moveToAndClick(getRefreshButtonCoords(chromeWindow), { window: 'screen', clickPause: 1000 });
     await delay(500); // Crowd goes wild, clap clap clap, FIN
 }, async () => {
+    if (chromeWindow) {
+        await osControls.closeWindow(chromeWindow.id);
+
+        // On Mac, closing the last window doesn't kill the process:
+        if (process.platform === 'darwin') {
+            await osControls.killProcess(chromeWindow.id.split('-')[0]);
+        }
+    }
     if (htkWindow) await osControls.closeWindow(htkWindow.id);
-    if (chromeWindow) await osControls.closeWindow(chromeWindow.id);
 });
