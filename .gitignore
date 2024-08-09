@@ -131,4 +131,8 @@ dist
 
 # Specific to us:
 *.mov
+*.mp4
+*.mkv
+*-demo-*.json
 .tokens.json
+.DS_Store
