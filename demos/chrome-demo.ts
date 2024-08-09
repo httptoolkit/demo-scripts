@@ -16,7 +16,12 @@ const osControls = getOsControls();
 let htkWindow: OsWindow;
 let chromeWindow: OsWindow;
 
-await runDemo(async (page) => {
+await runDemo('chrome', async (page) => {
+    const startTime = Date.now();
+    const results: {
+        clipsToCut: [start: number, end: number][]
+    } = { clipsToCut: [] };
+
     const htk = new HttpToolkit(page);
 
     htkWindow = await osControls.getWindowByName(/HTTP Toolkit - Chromium/);
@@ -47,6 +52,9 @@ await runDemo(async (page) => {
     const chromePromise = osControls.getNextNewWindow();
 
     await moveToAndClick(interceptPage.getInterceptorButton('Chrome'));
+
+    // Wait for Chrome, and position it once it appears:
+    const chromeLaunchTime = Date.now();
     chromeWindow = await chromePromise;
     await osControls.setWindowDimensions(chromeWindow.id, {
         x: htkWindow.position.x + 400,
@@ -54,6 +62,9 @@ await runDemo(async (page) => {
         width: htkWindow.size.width - 425,
         height: htkWindow.size.height - 250
     });
+    const chromeResizedTime = Date.now();
+    results.clipsToCut.push([chromeLaunchTime - startTime, chromeResizedTime - startTime]);
+
     await delay(100);
     chromeWindow = await osControls.getWindowById(chromeWindow.id);
     await osControls.focusWindow(chromeWindow.id);
@@ -199,6 +210,8 @@ await runDemo(async (page) => {
     await delay(1000);
     await moveToAndClick(getRefreshButtonCoords(chromeWindow), { window: 'screen', clickPause: 1000 });
     await delay(4000); // Crowd goes wild, clap clap clap, FIN
+
+    return results;
 }, async () => {
     if (chromeWindow) {
         await osControls.closeWindow(chromeWindow.id);

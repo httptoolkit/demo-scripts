@@ -41,26 +41,76 @@ async function recordScreen(
     { top, left, width, height }: { top: number, left: number, width: number, height: number },
     output: string
 ) {
-    zx.$.verbose = true;
     await zx.$`rm -f ${output}`;
     const recording = zx.$`ffmpeg ${[
+        '-hide_banner', // Quiet start
+        '-loglevel', 'error', // Skip the debug noise
+        '-stats', // But still give progress to see that it's working
         '-f', 'avfoundation', // Use AVFoundation (Mac) input
         '-capture_cursor', '1', // Show the mouse
         '-i', '0:0', // Capture screen 0
         '-vf', `crop=${width}:${height}:${left}:${top}`, // Crop to the desired area
         output // Output path
-    ]}`;
+    ]}`.stdio('pipe');
+
+    await new Promise<void>((resolve, reject) => {
+        setTimeout(() => reject(new Error('Recording failed to start')), 5000);
+        recording.stderr.on('data', resolve);
+    });
+
     console.log('Recording started');
 
     return {
-        stop: function stopRecording() {
-            recording.kill();
+        stop: async function stopRecording() {
+            recording.stdin.write('q');
+            await recording;
+            console.log('Recording stopped');
         }
     }
 }
 
+const millisToFfmpegTime = (millis: number) => {
+    const seconds = Math.floor(millis / 1000);
+    const milliseconds = millis % 1000;
+    return `${seconds}.${milliseconds.toString().padStart(3, '0')}`;
+}
+
+async function trimVideoParts(filename: string, partsToRemove: [start: number, end: number][]) {
+    // Build an array of [0, firstStart], [firstEnd, secondStart], ...,
+    const partsToKeep = partsToRemove.reduce((acc, [start, end]) => {
+        const last = acc[acc.length - 1];
+        return [...acc.slice(0, -1), [last[0], start], [end, Infinity]];
+    }, [[0, Infinity]]);
+
+    const ffmpegFilter =
+        `[0:v]split${partsToKeep.map((_p, i) => `[v${i}]`).join('')};${
+            // ^ Split into N streams called v1, v2, ...
+            // v Then, for each stream vX, clip out the correponding video part as vXtrim:
+            partsToKeep.map(([start, end], i) => {
+                if (end !== Infinity) {
+                    return `[v${i}]trim=start=${
+                        millisToFfmpegTime(start)
+                    }:end=${
+                        millisToFfmpegTime(end)
+                    },setpts=PTS-STARTPTS[v${i}trim]`;
+                } else {
+                    return `[v${i}]trim=start=${
+                        millisToFfmpegTime(start)
+                    },setpts=PTS-STARTPTS[v${i}trim]`;
+                }
+        }).join(';')
+    };${ // Join all the vXtrim streams into one output stream outv:
+        partsToKeep.map((_p, i) => `[v${i}trim]`).join('')
+    }concat[outv]`;
+
+    await zx.$`ffmpeg -i ${filename} -filter_complex ${
+        ffmpegFilter
+    } -map "[outv]" -map 0:a ${filename + '.trimmed.mkv'}`;
+}
+
 export async function runDemo(
-    demo: (page: Page) => Promise<void>,
+    name: string,
+    demo: (page: Page) => Promise<{ clipsToCut?: Array<[start: number, end: number]> }>,
     cleanup: () => Promise<void>
 ) {
     const TOP = 200;
@@ -94,21 +144,34 @@ export async function runDemo(
         }
     );
 
+    const recordingName = `${name}-demo-${new Date().toISOString().replace(/:/g, '-')}`;
+
     const recording = RECORD_VIDEO
-        ? await recordScreen({ top: TOP, left: LEFT, width: WIDTH, height: HEIGHT }, 'output.mkv')
-        : { stop: () => {} };
+        ? await recordScreen(
+            { top: TOP, left: LEFT, width: WIDTH, height: HEIGHT },
+            `${recordingName}.mkv`
+        )
+        : { stop: async () => {} };
+
     console.log("Starting demo");
 
+    let demoResults: any;
     try {
-        await demo(page);
+        demoResults = await demo(page);
+        console.log(demoResults);
+        if (RECORD_VIDEO) {
+            await fs.writeFile(`${recordingName}.json`, JSON.stringify(demoResults, null, 2));
+        }
     } finally {
         await cleanup().catch(() => {});
     }
 
     console.log("Demo completed");
-    browser.close();
-    if (RECORD_VIDEO) {
-        await delay(1000);
-        recording.stop();
+    if (RECORD_VIDEO) await recording.stop();
+    await browser.close();
+
+    if (RECORD_VIDEO && demoResults.clipsToCut?.length) {
+        await trimVideoParts(`${recordingName}.mkv`, demoResults.clipsToCut);
+        console.log('Trimming complete');
     }
 }
