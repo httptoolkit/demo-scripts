@@ -31,7 +31,7 @@ interface OsControls {
 
     enterString(text: string): Promise<void>;
     typeString(text: string, duration: number): Promise<void>;
-    keyTap(key: string): void;
+    keyTap(key: string): Promise<void>;
 }
 
 export function getOsControls(): OsControls {
@@ -66,9 +66,6 @@ export function getOsControls(): OsControls {
         },
         mouseClick(button: 'left' | 'right') {
             robot.mouseClick(button);
-        },
-        keyTap(key: string) {
-            robot.keyTap(key);
         },
         async getNextNewWindow() {
             const initialWindows = await osMethods.getVisibleOpenWindows();

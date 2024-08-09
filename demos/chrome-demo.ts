@@ -62,7 +62,7 @@ await runDemo(async (page) => {
     await delay(100);
     await osControls.typeString('https://github.com', 500);
     await delay(500);
-    osControls.keyTap('enter');
+    await osControls.keyTap('enter');
     await delay(2500);
 
     // --- Filter & view traffic ---
@@ -77,7 +77,7 @@ await runDemo(async (page) => {
 
     await osControls.typeString('hostname=github.com', 1000);
     await delay(1000);
-    osControls.keyTap('enter');
+    await osControls.keyTap('enter');
 
     await delay(500);
     const githubRow = viewPage.getRowByIndex(1);

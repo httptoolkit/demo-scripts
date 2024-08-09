@@ -1,5 +1,7 @@
-import { delay } from '@httptoolkit/util';
 import * as zx from 'zx';
+import robot from '@jitsi/robotjs';
+import { delay } from '@httptoolkit/util';
+
 import { Dimensions } from '../browser-utils.js';
 
 async function wmctrl(...args: string[]) {
@@ -57,6 +59,11 @@ export async function setWindowDimensions(
     { x, y, width, height }: Dimensions
 ) {
     await wmctrl('-i', '-r', id, '-e', `0,${x},${y},${width},${height}`);
+}
+
+export async function keyTap(key: string) {
+    robot.keyTap(key);
+    await delay(0);
 }
 
 // Robot.js has issues with chars that require shift on Linux so we setup

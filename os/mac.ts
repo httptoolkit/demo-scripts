@@ -53,6 +53,15 @@ export async function setWindowDimensions(
     } ${x} ${y} ${width} ${height}`;
 }
 
+export async function keyTap(key: string) {
+    const keyCode = ({
+        'enter': '36'
+    } as const)[key];
+    if (!keyCode) throw new Error(`Unrecognized Mac keyname: ${key}`);
+
+    await zx.$`osascript os/applescripts/key-tap.applescript ${keyCode}`;
+}
+
 export async function enterString(text: string) {
     await zx.$`osascript os/applescripts/enter-string.applescript ${text}`;
 }
