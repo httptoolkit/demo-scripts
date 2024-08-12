@@ -30,7 +30,10 @@ interface OsControls {
     mouseClick(button: 'left' | 'right'): void;
 
     enterString(text: string): Promise<void>;
-    typeString(text: string, duration: number): Promise<void>;
+    typeString(text: string, options?: {
+        duration?: number,
+        restoreCursor?: boolean // Only relevant on Mac
+    }): Promise<void>;
     keyTap(key: string): Promise<void>;
 }
 

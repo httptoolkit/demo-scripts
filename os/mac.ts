@@ -66,8 +66,19 @@ export async function enterString(text: string) {
     await zx.$`osascript os/applescripts/enter-string.applescript ${text}`;
 }
 
-export async function typeString(text: string, duration: number) {
+export async function typeString(
+    text: string,
+    options: { duration?: number, restoreCursor?: boolean } = {}
+) {
+    const duration = options.duration ?? 400;
+
     const chars = text.length;
     const durationPerChar = Math.floor(duration / chars);
-    await zx.$`osascript os/applescripts/type-string.applescript ${text} ${durationPerChar}`;
+    await zx.$`osascript os/applescripts/type-string.applescript ${
+        text
+    } ${
+        durationPerChar
+    } ${
+        options.restoreCursor === false ? 'false' : 'true'
+    }`;
 }

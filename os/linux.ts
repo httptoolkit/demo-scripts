@@ -72,7 +72,12 @@ export async function enterString(text: string) {
     await zx.$`xdotool type --delay 0 ${text}`;
 }
 
-export async function typeString(text: string, duration: number) {
+export async function typeString(
+    text: string,
+    options: { duration?: number } = {}
+) {
+    const duration = options.duration ?? 400;
+
     const chars = text.length;
     const durationPerChar = Math.floor(duration / chars);
     const xDotDelay = 2*durationPerChar; // Very oddly, xdot seems to half its given delay? Workaround

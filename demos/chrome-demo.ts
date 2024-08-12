@@ -59,7 +59,7 @@ await runDemo('chrome', async (page) => {
     await moveToAndClick(getUrlBarCoords(chromeWindow), { window: 'screen' });
 
     await delay(100);
-    await osControls.typeString('https://github.com', 500);
+    await osControls.typeString('https://github.com', { duration: 500 });
     await delay(500);
     await osControls.keyTap('enter');
     await delay(2500);
@@ -74,7 +74,7 @@ await runDemo('chrome', async (page) => {
     await moveToAndClick(viewPage.getFilterBox());
     await delay(500);
 
-    await osControls.typeString('hostname=github.com', 1000);
+    await osControls.typeString('hostname=github.com', { duration: 1000 });
     await delay(1000);
     await osControls.keyTap('enter');
 
@@ -118,7 +118,7 @@ await runDemo('chrome', async (page) => {
     await delay(50);
     await htk.openFind();
     await delay(1000);
-    await osControls.typeString('Build from', 500);
+    await osControls.typeString('Build from', { duration: 500 });
     await delay(500);
     await moveToAndClick(responseBody.getEditor().getNextMatchButton());
     await moveToAndClick(responseBody.getEditor().getNextMatchButton(), { moveDuration: 250 });
@@ -150,7 +150,7 @@ await runDemo('chrome', async (page) => {
 
     await delay(100);
     await moveToAndClick(newRule.getAdditionalMatcherInput());
-    await osControls.typeString('https://github.com/', 250);
+    await osControls.typeString('https://github.com/', { duration: 250 });
     await moveToAndClick(newRule.getAdditionalMatcherAddButton());
 
     await delay(250);
@@ -177,15 +177,17 @@ await runDemo('chrome', async (page) => {
 
     await moveToAndClick(matchInput);
     let resultPosition = await resultInput.boundingBox(); // Need to grab before we create a new row
-    await osControls.typeString('build from', 400);
+    await osControls.typeString('build from');
     await moveToAndClick(resultPosition!);
-    await osControls.typeString('modify anything', 400);
+    await osControls.typeString('modify anything');
 
     await moveToAndClick(matchInput);
     resultPosition = await resultInput.boundingBox(); // Grab before we create a new row
-    await osControls.typeString('The world’s leading AI-powered developer platform', 1200);
+    await osControls.typeString('The world’s leading AI-powered developer platform',
+        { duration: 1200 }
+    );
     await moveToAndClick(resultPosition!);
-    await osControls.typeString('with HTTP Toolkit', 400);
+    await osControls.typeString('with HTTP Toolkit');
 
     await delay(300);
     await moveToAndClick(newRule.getSaveButton());
