@@ -1,15 +1,13 @@
-import { Locator } from 'playwright';
 import { delay } from '@httptoolkit/util';
 
 import { runDemo } from '../setup.js';
 import { HttpToolkit } from '../pages/httptoolkit.js';
 import { OsWindow, getOsControls } from '../os/index.js';
 import {
-    Dimensions,
     getOptionDimensions,
     getUrlBarCoords,
-    moveMouseTo,
-    getRefreshButtonCoords
+    getRefreshButtonCoords,
+    buildMouseMoveClickHelper
 } from '../browser-utils.js';
 
 const osControls = getOsControls();
@@ -25,20 +23,7 @@ await runDemo('chrome', async (page) => {
     const htk = new HttpToolkit(page);
 
     htkWindow = await osControls.getWindowByName(/HTTP Toolkit - Chromium/);
-
-    const moveToAndClick = async (elem: Locator | Dimensions, options?: {
-        moveDuration?: number,
-        clickPause?: number,
-        window?: OsWindow | 'screen'
-    }) => {
-        await moveMouseTo(
-            options?.window ?? htkWindow,
-            elem,
-            options?.moveDuration || 200
-        );
-        await delay(options?.clickPause || 200);
-        osControls.mouseClick('left');
-    }
+    const moveToAndClick = buildMouseMoveClickHelper(htkWindow);
 
     osControls.setMouse(htkWindow.position.x + 35, htkWindow.position.y + 35);
 

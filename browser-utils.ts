@@ -1,4 +1,5 @@
 import { Locator } from "playwright";
+import { delay } from "@httptoolkit/util";
 
 import { getOsControls, OsWindow } from "./os/index.js";
 
@@ -107,4 +108,20 @@ export async function getOptionDimensions(selectLocator: Locator, value: string)
             height: optionHeight
         };
     }, { value, isMac });
+}
+
+export function buildMouseMoveClickHelper(targetWindow: OsWindow) {
+    return async (elem: Locator | Dimensions, options?: {
+        moveDuration?: number,
+        clickPause?: number,
+        window?: OsWindow | 'screen'
+    }) => {
+        await moveMouseTo(
+            options?.window ?? targetWindow,
+            elem,
+            options?.moveDuration || 200
+        );
+        await delay(options?.clickPause || 200);
+        osControls.mouseClick('left');
+    }
 }
