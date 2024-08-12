@@ -25,9 +25,9 @@ await runDemo('chrome', async (page) => {
     htkWindow = await osControls.getWindowByName(/HTTP Toolkit - Chromium/);
     const moveToAndClick = buildMouseMoveClickHelper(htkWindow);
 
-    osControls.setMouse(htkWindow.position.x + 35, htkWindow.position.y + 35);
-
     await htk.isLoaded();
+    osControls.setMouse(htkWindow.position.x - 20, htkWindow.position.y + 100);
+
     await delay(500);
 
     // --- Intercept Chrome in one click ---
@@ -36,7 +36,10 @@ await runDemo('chrome', async (page) => {
 
     const chromePromise = osControls.getNextNewWindow();
 
-    await moveToAndClick(interceptPage.getInterceptorButton('Chrome'));
+    await moveToAndClick(interceptPage.getInterceptorButton('Chrome'), {
+        moveDuration: 400,
+        clickPause: 400
+    });
 
     // Wait for Chrome, and position it once it appears:
     const chromeLaunchTime = Date.now();
@@ -47,8 +50,8 @@ await runDemo('chrome', async (page) => {
         width: htkWindow.size.width - 425,
         height: htkWindow.size.height - 250
     });
-    const chromeResizedTime = Date.now();
-    results.clipsToCut.push([chromeLaunchTime - startTime, chromeResizedTime - startTime]);
+    const chromeReadyTime = Date.now();
+    results.clipsToCut.push([chromeLaunchTime - startTime, chromeReadyTime - startTime]);
 
     await delay(100);
     chromeWindow = await osControls.getWindowById(chromeWindow.id);
