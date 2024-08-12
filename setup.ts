@@ -33,6 +33,7 @@ export async function launchChrome(
         `);
     }
     const page = await context.newPage();
+    page.on('dialog', () => console.log('Ignoring dialog')); // <-- Bad playwright, good UI automation
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
     return { browser, page };
