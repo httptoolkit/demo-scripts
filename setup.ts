@@ -22,7 +22,8 @@ export async function launchChrome(
     });
 
     const context = await browser.newContext({
-        viewport: null
+        viewport: null,
+        colorScheme: null
     });
     if (tokens) {
         await context.addInitScript(`
@@ -57,6 +58,7 @@ async function recordScreen(
         setTimeout(() => reject(new Error('Recording failed to start')), 5000);
         recording.stderr.on('data', resolve);
     });
+    await delay(200); // Add a tiny bit of slack to let recording start up
 
     console.log('Recording started');
 
@@ -114,7 +116,7 @@ export async function runDemo(
     cleanup: () => Promise<void>
 ) {
     const TOP = 200;
-    const LEFT = 100;
+    const LEFT = 50;
     const WIDTH = 1440;
     const HEIGHT = 810;
     const CHROME_TOP_HEIGHT = 87;
@@ -133,7 +135,7 @@ export async function runDemo(
         );
     }
 
-    const RECORD_VIDEO = false;
+    const RECORD_VIDEO = process.env.RECORD_VIDEO === 'true';
 
     const { browser, page } = await launchChrome(
         URL,

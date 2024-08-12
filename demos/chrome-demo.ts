@@ -34,9 +34,9 @@ await runDemo('chrome', async (page) => {
         await moveMouseTo(
             options?.window ?? htkWindow,
             elem,
-            options?.moveDuration || 300
+            options?.moveDuration || 200
         );
-        await delay(options?.clickPause || 100);
+        await delay(options?.clickPause || 200);
         osControls.mouseClick('left');
     }
 
@@ -135,7 +135,7 @@ await runDemo('chrome', async (page) => {
     await moveToAndClick(responseBody.getEditor().getNextMatchButton());
     await moveToAndClick(responseBody.getEditor().getNextMatchButton(), { moveDuration: 250 });
     await moveToAndClick(responseBody.getEditor().getNextMatchButton(), { moveDuration: 250 });
-    await delay(1500);
+    await delay(2000);
 
     // --- Create a mock rule ---
 
