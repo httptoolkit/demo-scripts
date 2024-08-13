@@ -63,11 +63,12 @@ export function getOsControls(): OsControls {
             // Move the mouse from current position to the target x/y with gentle easing:
             for (let i = 0; i < steps; i++) {
                 const t = i / steps;
-                // For all except the last step, we include a small jitter factor for realism:
-                const easedT = 0.5 - 0.5 * Math.cos(t * Math.PI) + (i === steps - 1 ? 0 : Math.random() * 0.01);
+                const easedT = 0.5 - 0.5 * Math.cos(t * Math.PI);
                 robot.moveMouse(currentMousePos.x + dx * easedT, currentMousePos.y + dy * easedT);
                 await delay(stepDuration);
             }
+            // Make sure we always always end exactly at position
+            robot.moveMouse(x, y);
         },
         mouseClick(button: 'left' | 'right' | 'double') {
             if (button === 'double') {
