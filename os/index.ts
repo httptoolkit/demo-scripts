@@ -81,7 +81,7 @@ export function getOsControls(): OsControls {
             const initialWindows = await osMethods.getVisibleOpenWindows();
 
             while (true) {
-                await delay(500);
+                await delay(250);
                 const currentWindows = await osMethods.getVisibleOpenWindows();
                 const newWindows = currentWindows.filter((win) =>
                     !initialWindows.find((initialWin) => initialWin.id === win.id)
