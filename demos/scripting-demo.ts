@@ -14,7 +14,26 @@ const osControls = getOsControls();
 let htkWindow: OsWindow;
 let terminalWindow: OsWindow;
 
-await runDemo('node', async (page) => {
+const language = process.argv[2];
+
+const { filterString, scriptCommand } = ({
+    node: {
+        filterString: 'node.js',
+        scriptCommand: 'node ./my-node-script.js'
+    },
+    python: {
+        filterString: 'python',
+        scriptCommand: 'python3 my-python-script.py'
+    },
+    ruby: {
+        filterString: 'ruby',
+        scriptCommand: 'ruby my-ruby-script.rb'
+    }
+} as const)[language]!;
+
+console.log(`Running terminal demo for ${language} (${filterString}) with '${scriptCommand}'`);
+
+await runDemo(language, async (page) => {
     const startTime = Date.now();
     const results: {
         clipsToCut: [start: number, end: number][]
@@ -24,7 +43,6 @@ await runDemo('node', async (page) => {
 
     htkWindow = await osControls.getWindowByName(/HTTP Toolkit - Chromium/);
     const moveToAndClick = buildMouseMoveClickHelper(htkWindow);
-
 
     // Restoring the cursor is rarely relevant, since we usually keep typing or switch back
     // to the UI anyway, so we use wrappers to easily avoid UI flicker:
@@ -51,7 +69,7 @@ await runDemo('node', async (page) => {
         moveDuration: 400
     });
 
-    await osControls.typeString('Node.js');
+    await osControls.typeString(filterString);
 
     await moveToAndClick(interceptPage.getInterceptorButton('Fresh Terminal'), {
         clickPause: 400
@@ -75,7 +93,7 @@ await runDemo('node', async (page) => {
     results.clipsToCut.push([terminalLaunchTime - startTime, terminalReadyTime - startTime]);
 
     await delay(1000);
-    await typeCommand("node ./my-node-script.js", 500);
+    await typeCommand(scriptCommand, 600);
     await delay(500);
     await tapKey('enter');
     await delay(3000);
@@ -143,19 +161,20 @@ await runDemo('node', async (page) => {
     const modifyPage = await htk.goTo('modify');
     const newRule = (await modifyPage.getRules())[0];
 
-    await delay(1000);
+    await delay(1500);
     const handlerDropdown = newRule.getBaseHandlerDropdown();
     await moveToAndClick(handlerDropdown);
 
     delay(100);
     await moveToAndClick(await getOptionDimensions(handlerDropdown, 'response-breakpoint'), {
         moveDuration: 500,
-        clickPause: 1000
+        clickPause: 1250
     });
 
-    await delay(300);
+    await delay(500);
+
     await moveToAndClick(newRule.getSaveButton(), {
-        clickPause: 750
+        clickPause: 500
     });
 
     // --- Trigger and use the breakpoint
@@ -164,9 +183,9 @@ await runDemo('node', async (page) => {
     await osControls.focusWindow(terminalWindow.id);
     await delay(100);
     await tapKey('up');
-    await delay(250);
+    await delay(1000);
     await tapKey('enter');
-    await delay(200);
+    await delay(250);
 
     await osControls.focusWindow(htkWindow.id);
 
@@ -181,7 +200,7 @@ await runDemo('node', async (page) => {
     await delay(100);
     osControls.mouseClick('double'); // Double click to select entire string
 
-    await osControls.typeString('Httptoolkitasaur');
+    await osControls.typeString('Httptoolkitasaur', { duration: 1000 });
 
     const urlChunkDimensions = (await (
         responseBody.getEditor().getEditorChunk('https://pokeapi.co/api/v2/pokemon/1/').boundingBox()
@@ -252,7 +271,7 @@ await runDemo('node', async (page) => {
 
     await delay(500);
     foldButtonPosition = await sendEditor.getFoldButtons().nth(1).boundingBox();
-    const edgeOfEditorPosition = { ...foldButtonPosition!, x: foldButtonPosition!.x + 100 };
+    const edgeOfEditorPosition = { ...foldButtonPosition!, x: foldButtonPosition!.x + 50 };
 
     await moveToAndClick(edgeOfEditorPosition, { moveDuration: 100, clickPause: 0 });
     await delay(50);
@@ -266,6 +285,7 @@ await runDemo('node', async (page) => {
 
     await delay(500);
     await moveToAndClick(responseBody.getEditor().getNextMatchButton());
+    await responseBody.getEditor().getNextMatchButton().click();
 
     await delay(1500);
     await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
