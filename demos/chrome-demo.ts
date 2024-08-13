@@ -26,7 +26,7 @@ await runDemo('chrome', async (page) => {
     const moveToAndClick = buildMouseMoveClickHelper(htkWindow);
 
     await htk.isLoaded();
-    osControls.setMouse(htkWindow.position.x - 20, htkWindow.position.y + 100);
+    osControls.setMouse(htkWindow.position.x - 20, htkWindow.position.y + 150);
 
     await delay(500);
 
