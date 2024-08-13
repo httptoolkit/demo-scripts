@@ -53,13 +53,19 @@ export async function setWindowDimensions(
     } ${x} ${y} ${width} ${height}`;
 }
 
-export async function keyTap(key: string) {
+export async function keyTap(key: string, options: {
+    restoreCursor?: boolean
+} = {}) {
     const keyCode = ({
-        'enter': '36'
+        'enter': '36',
+        'up': '126',
+        'backspace': '51',
     } as const)[key];
     if (!keyCode) throw new Error(`Unrecognized Mac keyname: ${key}`);
 
-    await zx.$`osascript os/applescripts/key-tap.applescript ${keyCode}`;
+    await zx.$`osascript os/applescripts/key-tap.applescript ${keyCode} ${
+        options.restoreCursor === false ? 'false' : 'true'
+    }`;
 }
 
 export async function enterString(text: string) {

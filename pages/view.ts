@@ -29,6 +29,14 @@ export class ViewPage {
         return new Card(this.page.locator(`section[aria-label="${name} section"]`));
     }
 
+    getCreateRuleButton() {
+        return this.page.getByTitle("Create a modify rule").first();
+    }
+
+    getResumeButton() {
+        return this.page.getByRole('button', { name: 'Resume' });
+    }
+
 }
 
 class Card {
@@ -45,8 +53,20 @@ class Card {
         return this.card.getByTitle('Expand this area');
     }
 
+    getShrinkButton() {
+        return this.card.getByTitle('Shrink this area');
+    }
+
+    getFormatButton() {
+        return this.card.getByTitle('Format as');
+    }
+
     getEditor() {
         return new Editor(this.card.locator('.monaco-editor'));
+    }
+
+    getExpandableSections() {
+        return this.card.locator("> div > section header");
     }
 
 }
@@ -67,6 +87,10 @@ class Editor {
 
     getNextMatchButton() {
         return this.editor.getByLabel('Next Match').first();
+    }
+
+    getEditorChunk(text: string) {
+        return this.editor.getByText(text);
     }
 
 }

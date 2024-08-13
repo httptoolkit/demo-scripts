@@ -27,14 +27,16 @@ interface OsControls {
 
     setMouse(x: number, y: number): Promise<void>;
     slideMouse(x: number, y: number, duration: number): Promise<void>;
-    mouseClick(button: 'left' | 'right'): void;
+    mouseClick(button: 'left' | 'right' | 'double'): void;
 
     enterString(text: string): Promise<void>;
     typeString(text: string, options?: {
         duration?: number,
         restoreCursor?: boolean // Only relevant on Mac
     }): Promise<void>;
-    keyTap(key: string): Promise<void>;
+    keyTap(key: string, options?: {
+        restoreCursor?: boolean // Only relevant on Mac
+    }): Promise<void>;
 }
 
 export function getOsControls(): OsControls {
@@ -67,8 +69,12 @@ export function getOsControls(): OsControls {
                 await delay(stepDuration);
             }
         },
-        mouseClick(button: 'left' | 'right') {
-            robot.mouseClick(button);
+        mouseClick(button: 'left' | 'right' | 'double') {
+            if (button === 'double') {
+                robot.mouseClick('left', true);
+            } else {
+                robot.mouseClick(button);
+            }
         },
         async getNextNewWindow() {
             const initialWindows = await osMethods.getVisibleOpenWindows();
