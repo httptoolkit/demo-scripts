@@ -6,7 +6,8 @@ import { HttpToolkit } from '../pages/httptoolkit.js';
 import { OsWindow, getOsControls } from '../os/index.js';
 import {
     buildMouseMoveClickHelper,
-    getOptionDimensions
+    getOptionDimensions,
+    moveMouseTo
 } from '../browser-utils.js';
 
 const osControls = getOsControls();
@@ -86,8 +87,8 @@ await runDemo('node', async (page) => {
     await delay(500);
     const viewPage = await htk.goTo('view');
 
-    const githubRow = viewPage.getRowByIndex(1);
-    await moveToAndClick(githubRow, { moveDuration: 150 });
+    const firstRow = viewPage.getRowByIndex(1);
+    await moveToAndClick(firstRow, { moveDuration: 150 });
     await delay(500);
 
     await moveToAndClick(viewPage.getCard('Request').getTitle(), {
@@ -104,10 +105,9 @@ await runDemo('node', async (page) => {
         clickPause: 500
     });
 
-    await delay(1000);
+    await delay(1500);
 
     await moveToAndClick(viewPage.getCard('Response').getTitle(), {
-        moveDuration: 100,
         clickPause: 500
     });
 
@@ -143,14 +143,14 @@ await runDemo('node', async (page) => {
     const modifyPage = await htk.goTo('modify');
     const newRule = (await modifyPage.getRules())[0];
 
-    await delay(500);
+    await delay(1000);
     const handlerDropdown = newRule.getBaseHandlerDropdown();
     await moveToAndClick(handlerDropdown);
 
     delay(100);
     await moveToAndClick(await getOptionDimensions(handlerDropdown, 'response-breakpoint'), {
         moveDuration: 500,
-        clickPause: 500
+        clickPause: 1000
     });
 
     await delay(300);
@@ -166,11 +166,11 @@ await runDemo('node', async (page) => {
     await tapKey('up');
     await delay(250);
     await tapKey('enter');
-    await delay(100);
+    await delay(200);
 
     await osControls.focusWindow(htkWindow.id);
 
-    await delay(500);
+    await delay(1000);
     await moveToAndClick(responseBody.getFormatButton());
 
     await delay(500);
@@ -198,11 +198,77 @@ await runDemo('node', async (page) => {
     await delay(50);
     await typeCommand('9999', 250);
 
-    await moveToAndClick(viewPage.getResumeButton());
+    await delay(1000);
+    await moveToAndClick(viewPage.getResumeButton(), {
+        clickPause: 500
+    });
+
+    await delay(250);
     await osControls.focusWindow(terminalWindow.id);
 
-    await delay(1000000);
+    await delay(2000);
 
+    // --- Resend & tweak the request
+
+    await osControls.focusWindow(htkWindow.id);
+
+    await delay(1000);
+    await moveToAndClick(viewPage.getFilterBox());
+
+    await delay(500);
+    await osControls.typeString('status=404', { duration: 600 });
+    await delay(500);
+    await osControls.keyTap('enter');
+
+    await delay(1000);
+    const failedRequestRow = viewPage.getRowByIndex(1);
+    await moveToAndClick(failedRequestRow, { moveDuration: 150 });
+    await delay(1000);
+
+    await moveToAndClick(viewPage.getResendButton());
+
+    const sendPage = await htk.goTo('send');
+
+    await delay(1000);
+    await moveToAndClick(sendPage.getSendButton());
+
+    await delay(500);
+
+    await moveToAndClick(sendPage.getUrlInput());
+    await tapKey('end');
+    await tapKey('backspace');
+    await tapKey('backspace');
+    await tapKey('backspace');
+    await tapKey('backspace');
+    await tapKey('backspace');
+    await osControls.typeString('1');
+
+    await delay(500);
+    await moveToAndClick(sendPage.getSendButton());
+
+    await moveToAndClick(sendPage.getResponseHeadersTitle());
+
+    const sendEditor = sendPage.getResponseBodyEditor();
+
+    await delay(500);
+    foldButtonPosition = await sendEditor.getFoldButtons().nth(1).boundingBox();
+    const edgeOfEditorPosition = { ...foldButtonPosition!, x: foldButtonPosition!.x + 100 };
+
+    await moveToAndClick(edgeOfEditorPosition, { moveDuration: 100, clickPause: 0 });
+    await delay(50);
+    await htk.openFind();
+    await delay(1000);
+    await osControls.typeString('Bulbasaur', { duration: 500 });
+
+    await delay(300);
+    foldButtonPosition = await sendEditor.getFoldButtons().nth(1).boundingBox();
+    await moveToAndClick(foldButtonPosition!);
+
+    await delay(500);
+    await moveToAndClick(responseBody.getEditor().getNextMatchButton());
+
+    await delay(1500);
+    await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
     return results;
 }, async () => {
     if (terminalWindow) {
@@ -210,6 +276,7 @@ await runDemo('node', async (page) => {
 
         // On Mac, closing the last window doesn't kill the process:
         if (process.platform === 'darwin') {
+            await delay(500);
             await osControls.killProcess(terminalWindow.id.split('-')[0]);
         }
     }

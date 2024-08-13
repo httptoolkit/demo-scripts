@@ -60,6 +60,7 @@ export async function keyTap(key: string, options: {
         'enter': '36',
         'up': '126',
         'backspace': '51',
+        'end': '119',
     } as const)[key];
     if (!keyCode) throw new Error(`Unrecognized Mac keyname: ${key}`);
 

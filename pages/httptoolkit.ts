@@ -70,6 +70,10 @@ export class HttpToolkit {
         return new page.PageClass(this.page) as InstanceType<typeof PAGES[P]['PageClass']>;
     }
 
+    getSidebarButton(pageId: PageId) {
+        return this.page.getByRole('link', { name: PAGES[pageId].link });
+    }
+
     openFind() {
         if (process.platform === 'darwin') {
             return this.page.keyboard.press('Meta+F');
