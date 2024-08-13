@@ -61,7 +61,6 @@ async function recordScreen(
         setTimeout(() => reject(new Error('Recording failed to start')), 5000);
         recording.stderr.on('data', resolve);
     });
-    await delay(200); // Add a tiny bit of slack to let recording start up
 
     console.log('Recording started');
 

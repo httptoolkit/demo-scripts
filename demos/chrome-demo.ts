@@ -7,7 +7,8 @@ import {
     getOptionDimensions,
     getUrlBarCoords,
     getRefreshButtonCoords,
-    buildMouseMoveClickHelper
+    buildMouseMoveClickHelper,
+    moveMouseTo
 } from '../browser-utils.js';
 
 const osControls = getOsControls();
@@ -127,6 +128,7 @@ await runDemo('chrome', async (page) => {
 
     // --- Create a mock rule ---
 
+    await moveToAndClick(htk.getSidebarButton('modify'));
     const modifyPage = await htk.goTo('modify');
 
     await delay(1000);
@@ -200,6 +202,9 @@ await runDemo('chrome', async (page) => {
     await delay(1000);
     await moveToAndClick(getRefreshButtonCoords(chromeWindow), { window: 'screen', clickPause: 1000 });
     await delay(4000); // Crowd goes wild, clap clap clap, FIN
+
+    await osControls.focusWindow(htkWindow.id);
+    await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
 
     return results;
 }, async () => {
