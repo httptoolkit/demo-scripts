@@ -3,7 +3,9 @@ import { delay } from '@httptoolkit/util';
 import { chromium, Page } from 'playwright';
 import * as zx from 'zx';
 
-zx.$.verbose = true; // Log all commands
+export interface DemoResult {
+    clipsToCut: Array<[start: number, end: number]>;
+}
 
 export async function launchChrome(
     url: string,
@@ -80,9 +82,16 @@ const millisToFfmpegTime = (millis: number) => {
 
 async function trimVideoParts(filename: string, partsToRemove: [start: number, end: number][]) {
     // Build an array of [0, firstStart], [firstEnd, secondStart], ...,
-    const partsToKeep = partsToRemove.reduce((acc, [start, end]) => {
+    const partsToKeep = partsToRemove.reduce((acc, [start, end], i) => {
         const last = acc[acc.length - 1];
-        return [...acc.slice(0, -1), [last[0], start], [end, Infinity]];
+        if (end !== Infinity) {
+            return [...acc.slice(0, -1), [last[0], start], [end, Infinity]];
+        } else {
+            if (i !== partsToRemove.length - 1) {
+                throw new Error('Only the last cut can be open-ended');
+            }
+            return [...acc.slice(0, -1), [last[0], start]];
+        }
     }, [[0, Infinity]]);
 
     const ffmpegFilter =
@@ -113,7 +122,7 @@ async function trimVideoParts(filename: string, partsToRemove: [start: number, e
 
 export async function runDemo(
     name: string,
-    demo: (page: Page) => Promise<{ clipsToCut?: Array<[start: number, end: number]> }>,
+    demo: (page: Page) => Promise<DemoResult>,
     cleanup: () => Promise<void>
 ) {
     const TOP = 200;
@@ -158,19 +167,21 @@ export async function runDemo(
 
     console.log("Starting demo");
 
-    let demoResults: any;
+    let demoResults: DemoResult;
     try {
+        const startTime = Date.now();
         demoResults = await demo(page);
+        demoResults.clipsToCut.push([Date.now() - startTime, Infinity]);
         console.log(demoResults);
         if (RECORD_VIDEO) {
             await fs.writeFile(`${recordingName}.json`, JSON.stringify(demoResults, null, 2));
         }
     } finally {
+        console.log("Demo completed");
+        if (RECORD_VIDEO) await recording.stop();
         await cleanup().catch(() => {});
     }
 
-    console.log("Demo completed");
-    if (RECORD_VIDEO) await recording.stop();
     await browser.close();
 
     if (RECORD_VIDEO && demoResults.clipsToCut?.length) {
