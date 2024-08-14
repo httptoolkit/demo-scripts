@@ -1,15 +1,15 @@
 import { delay } from '@httptoolkit/util';
 
-import { runDemo } from '../setup.js';
-import { HttpToolkit } from '../pages/httptoolkit.js';
-import { OsWindow, getOsControls } from '../os/index.js';
+import { runDemo } from '../setup/run-demo.js';
 import {
     getOptionDimensions,
     getUrlBarCoords,
     getRefreshButtonCoords,
     buildMouseMoveClickHelper,
     moveMouseTo
-} from '../browser-utils.js';
+} from '../setup/browser.js';
+import { HttpToolkit } from '../pages/httptoolkit.js';
+import { OsWindow, getOsControls } from '../os/index.js';
 
 const osControls = getOsControls();
 let htkWindow: OsWindow;

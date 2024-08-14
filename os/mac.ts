@@ -1,5 +1,5 @@
 import * as zx from 'zx';
-import { Dimensions } from '../browser-utils.js';
+import { Dimensions } from '../setup/browser.js';
 
 export async function getVisibleOpenWindows() {
     const result = await zx.$`osascript os/applescripts/list-windows.applescript`.catch((e) => {

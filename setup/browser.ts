@@ -1,9 +1,43 @@
-import { Locator } from "playwright";
+import { chromium, Locator } from "playwright";
 import { delay } from "@httptoolkit/util";
 
-import { getOsControls, OsWindow } from "./os/index.js";
+import { getOsControls, OsWindow } from "../os/index.js";
 
-const CHROME_TOP_HEIGHT = 87;
+export async function launchChrome(
+    url: string,
+    { position, size, tokens }: {
+        position?: { x: number, y: number },
+        size?: { width: number, height: number },
+        tokens?: { refreshToken: string, accessToken: string }
+    } = {}
+) {
+    const browser = await chromium.launch({
+        headless: false,
+        args: [
+            position && `--window-position=${position.x},${position.y}`,
+            size && `--window-size=${size.width},${size.height}`
+        ].filter((x): x is string => !!x)
+    });
+
+    const context = await browser.newContext({
+        viewport: null,
+        colorScheme: null
+    });
+    if (tokens) {
+        await context.addInitScript(`
+            window.localStorage.setItem('tokens', JSON.stringify(${
+                JSON.stringify(tokens)
+            }));
+        `);
+    }
+    const page = await context.newPage();
+    page.on('dialog', () => console.log('Ignoring dialog')); // <-- Bad playwright, good UI automation
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+
+    return { browser, page };
+}
+
+export const CHROME_TOP_HEIGHT = 87;
 
 const CHROME_URL_Y = 44;
 const CHROME_URL_BAR_HEIGHT = 40;

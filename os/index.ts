@@ -5,7 +5,7 @@ import { delay } from '@httptoolkit/util';
 
 import * as linuxMethods from './linux.js';
 import * as macMethods from './mac.js';
-import { Dimensions } from '../browser-utils.js';
+import { Dimensions } from '../setup/browser.js';
 
 export interface OsWindow {
     id: string;

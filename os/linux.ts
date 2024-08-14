@@ -2,7 +2,7 @@ import * as zx from 'zx';
 import robot from '@jitsi/robotjs';
 import { delay } from '@httptoolkit/util';
 
-import { Dimensions } from '../browser-utils.js';
+import { Dimensions } from '../setup/browser.js';
 
 async function wmctrl(...args: string[]) {
     const result = await zx.$`wmctrl ${args}`;
