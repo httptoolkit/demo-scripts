@@ -290,15 +290,17 @@ await runDemo(language, async (page) => {
     await delay(1500);
     await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
     return results;
-}, async () => {
-    if (terminalWindow) {
-        await osControls.closeWindow(terminalWindow.id);
+}, {
+    cleanup: async () => {
+        if (terminalWindow) {
+            await osControls.closeWindow(terminalWindow.id);
 
-        // On Mac, closing the last window doesn't kill the process:
-        if (process.platform === 'darwin') {
-            await delay(500);
-            await osControls.killProcess(terminalWindow.id.split('-')[0]);
+            // On Mac, closing the last window doesn't kill the process:
+            if (process.platform === 'darwin') {
+                await delay(500);
+                await osControls.killProcess(terminalWindow.id.split('-')[0]);
+            }
         }
+        if (htkWindow) await osControls.closeWindow(htkWindow.id);
     }
-    if (htkWindow) await osControls.closeWindow(htkWindow.id);
 });

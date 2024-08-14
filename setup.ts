@@ -122,7 +122,10 @@ async function trimVideoParts(filename: string, partsToRemove: [start: number, e
 export async function runDemo(
     name: string,
     demo: (page: Page) => Promise<DemoResult>,
-    cleanup: () => Promise<void>
+    options: {
+        setup?: () => Promise<void>,
+        cleanup?: () => Promise<void>
+    } = {}
 ) {
     const TOP = 200;
     const LEFT = 50;
@@ -155,6 +158,8 @@ export async function runDemo(
         }
     );
 
+    await options.setup?.();
+
     const recordingName = `${name}-demo-${new Date().toISOString().replace(/:/g, '-')}`;
 
     const recording = RECORD_VIDEO
@@ -178,7 +183,7 @@ export async function runDemo(
     } finally {
         console.log("Demo completed");
         if (RECORD_VIDEO) await recording.stop();
-        await cleanup().catch(() => {});
+        await options.cleanup?.().catch(() => {});
     }
 
     await browser.close();

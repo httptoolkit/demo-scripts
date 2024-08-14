@@ -98,14 +98,16 @@ await runDemo('curl', async (page) => {
     await delay(1000);
 
     return results;
-}, async () => {
-    if (terminalWindow) {
-        await osControls.closeWindow(terminalWindow.id);
+}, {
+    cleanup: async () => {
+        if (terminalWindow) {
+            await osControls.closeWindow(terminalWindow.id);
 
-        // On Mac, closing the last window doesn't kill the process:
-        if (process.platform === 'darwin') {
-            await osControls.killProcess(terminalWindow.id.split('-')[0]);
+            // On Mac, closing the last window doesn't kill the process:
+            if (process.platform === 'darwin') {
+                await osControls.killProcess(terminalWindow.id.split('-')[0]);
+            }
         }
+        if (htkWindow) await osControls.closeWindow(htkWindow.id);
     }
-    if (htkWindow) await osControls.closeWindow(htkWindow.id);
 });

@@ -207,14 +207,16 @@ await runDemo('chrome', async (page) => {
     await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
 
     return results;
-}, async () => {
-    if (chromeWindow) {
-        await osControls.closeWindow(chromeWindow.id);
+}, {
+    cleanup: async () => {
+        if (chromeWindow) {
+            await osControls.closeWindow(chromeWindow.id);
 
-        // On Mac, closing the last window doesn't kill the process:
-        if (process.platform === 'darwin') {
-            await osControls.killProcess(chromeWindow.id.split('-')[0]);
+            // On Mac, closing the last window doesn't kill the process:
+            if (process.platform === 'darwin') {
+                await osControls.killProcess(chromeWindow.id.split('-')[0]);
+            }
         }
+        if (htkWindow) await osControls.closeWindow(htkWindow.id);
     }
-    if (htkWindow) await osControls.closeWindow(htkWindow.id);
 });
