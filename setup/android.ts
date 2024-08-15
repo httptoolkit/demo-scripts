@@ -55,6 +55,12 @@ export async function setAndroidDarkMode(state: boolean | undefined) {
     await zx.$`adb shell cmd uimode night ${state ? 'yes' : 'no'}`;
 }
 
+export async function resetApp(appPkgName: string) {
+    await zx.$`adb shell su -c pm clear --cache-only ${appPkgName}`;
+    await zx.$`adb shell am force-stop ${appPkgName}`;
+}
+
 export async function disconnectVpn() {
+    await zx.$`adb shell am start --activity-single-top tech.httptoolkit.android.v1/tech.httptoolkit.android.MainActivity`;
     await zx.$`adb shell am start -a tech.httptoolkit.android.DEACTIVATE`;
 }

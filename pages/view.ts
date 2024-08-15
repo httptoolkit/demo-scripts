@@ -2,7 +2,12 @@ import { Locator, Page } from "playwright";
 
 import { Editor } from "./editor-element.js";
 
-type CardName = 'Request' | 'Response' | 'Request Body' | 'Response Body';
+type CardName =
+    | 'Request'
+    | 'Response'
+    | 'Request Body'
+    | 'Response Body'
+    | 'Web Socket Messages';
 
 export class ViewPage {
 
@@ -15,12 +20,8 @@ export class ViewPage {
         return this.page.locator(`[role=table] [aria-rowindex="${index}"]`);
     }
 
-    getRow(hostname: string, path: string) {
-        return this.page.getByRole('row')
-            .filter({
-                has: this.page.locator(`:has(div:nth-child(6)[title='${hostname}']):has(div:nth-child(7)[title='${path}']`)
-            })
-            .first();
+    getRows(hostname: string) {
+        return this.page.locator(`[role=row]:has(div:nth-child(6)[title='${hostname}'])`);
     }
 
     getFilterBox() {
@@ -73,6 +74,10 @@ class Card {
 
     getExpandableSections() {
         return this.card.locator("> div > section header");
+    }
+
+    getMessageRowByIndex(index: number) {
+        return this.card.getByRole('row').nth(index);
     }
 
 }

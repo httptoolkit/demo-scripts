@@ -28,6 +28,7 @@ interface OsControls {
     setMouse(x: number, y: number): Promise<void>;
     slideMouse(x: number, y: number, duration: number): Promise<void>;
     mouseClick(button: 'left' | 'right' | 'double'): void;
+    scrollMouse(distance: { x?: number, y?: number }, duration: number): Promise<void>;
 
     enterString(text: string): Promise<void>;
     typeString(text: string, options?: {
@@ -58,7 +59,7 @@ export function getOsControls(): OsControls {
             const dy = y - currentMousePos.y;
 
             const stepDuration = 10;
-            const steps = duration / stepDuration;
+            const steps = Math.floor(duration / stepDuration);
 
             // Move the mouse from current position to the target x/y with gentle easing:
             for (let i = 0; i < steps; i++) {
@@ -75,6 +76,21 @@ export function getOsControls(): OsControls {
                 robot.mouseClick('left', true);
             } else {
                 robot.mouseClick(button);
+            }
+        },
+        async scrollMouse(distance: { x?: number, y?: number }, duration) {
+            const x = distance.x ?? 0;
+            const y = distance.y ?? 0;
+
+            const stepDuration = 10;
+            const steps = Math.ceil(duration / stepDuration);
+
+            const xPerStep = x / steps;
+            const yPerStep = y / steps;
+
+            for (let i = 0; i <= steps; i++) {
+                robot.scrollMouse(xPerStep, yPerStep);
+                await delay(stepDuration);
             }
         },
         async getNextNewWindow() {

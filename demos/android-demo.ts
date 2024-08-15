@@ -1,7 +1,7 @@
 import { delay } from '@httptoolkit/util';
 
 import { runDemo } from '../setup/run-demo.js';
-import { buildMouseMoveClickHelper } from '../setup/browser.js';
+import { buildMouseMoveClickHelper, getOptionDimensions, moveMouseTo } from '../setup/browser.js';
 import {
     AndroidSession,
     getAppiumSession,
@@ -10,13 +10,14 @@ import {
     startAndroidRecording,
     stopAndroidRecording,
     setAndroidDarkMode,
-    disconnectVpn
+    disconnectVpn,
+    resetApp
 } from '../setup/android.js';
 import { getDarkModeState } from '../setup/dark-mode.js';
 
 import { OsWindow, getOsControls } from '../os/index.js';
 import { HttpToolkit } from '../pages/httptoolkit.js';
-import { AndroidDevice } from '../pages/android-device.js';
+import { AndroidDevice, By } from '../pages/android-device.js';
 
 
 const osControls = getOsControls();
@@ -36,7 +37,6 @@ await runDemo('android', async (page) => {
 
     htkWindow = await osControls.getWindowByName(/HTTP Toolkit - Chromium/);
     const moveToAndClick = buildMouseMoveClickHelper(htkWindow);
-    android = new AndroidDevice(androidSession);
 
     await htk.isLoaded();
     osControls.setMouse(htkWindow.position.x - 20, htkWindow.position.y + 150);
@@ -66,11 +66,105 @@ await runDemo('android', async (page) => {
 
     await delay(1000);
 
-    const netflixHomeIcon = await android.getByText("Netflix");
+    const netflixHomeIcon = await android.get(By.text("Netflix"));
     await netflixHomeIcon.click();
+    await delay(2250);
+
+    const netflixOpenTime = Date.now();
+    await (await android.get(By.contentDescription("select Tim"))).click();
+    await delay(1500);
+    const netflixReadyTime = Date.now();
+    results.clipsToCut.push([netflixOpenTime - startTime, netflixReadyTime - startTime]);
+
+    await delay(1000);
+
+    const screenSize = await android.getScreenSize();
+    await android.touchMove(
+        { x: screenSize.width / 2, y: screenSize.height * 2/3 },
+        { x: screenSize.width / 2, y: screenSize.height * 1/3 },
+        { duration: 500 }
+    );
 
     await delay(500);
+    const rows = (await android.getAll(By.widgetChain(
+        "android.widget.GridView",
+        "android.widget.LinearLayout"
+    )));
 
+    const rowDimensions = await android.getElementDimensions(rows[0]);
+    await android.touchMove(
+        {
+            x: rowDimensions.x + rowDimensions.width * 3/4,
+            y: rowDimensions.y + rowDimensions.height / 2
+        },
+        {
+            x: rowDimensions.x + rowDimensions.width * 1/4,
+            y: rowDimensions.y + rowDimensions.height / 2
+        },
+        { duration: 500 }
+    );
+
+    // --- Look at intercepted traffic ---
+
+    const viewPage = await htk.goTo('view');
+
+    await moveToAndClick(viewPage.getFilterBox());
+    await delay(500);
+    await osControls.typeString('method=POST');
+    await delay(1000);
+    await osControls.keyTap('enter');
+
+    await delay(500);
+    const graphQlRow = viewPage.getRows('android.prod.ftl.netflix.com').nth(2);
+    await moveToAndClick(graphQlRow);
+
+    await delay(500);
+    const requestCard = viewPage.getCard('Request');
+    const urlSection = (await requestCard.getExpandableSections().all())[1];
+    const urlSectionButton = urlSection.getByRole('button');
+    await moveToAndClick(urlSectionButton);
+
+    await delay(500);
+    await osControls.scrollMouse({ y: -200 }, 500);
+
+    await delay(1000);
+
+    await osControls.scrollMouse({ y: 200 }, 250);
+    await moveToAndClick(requestCard.getTitle());
+    await delay(1000);
+    await moveToAndClick(viewPage.getCard('Response').getTitle());
+
+    await delay(2000);
+
+    await moveToAndClick(viewPage.getFilterBox());
+    await delay(500);
+    await osControls.keyTap('backspace');
+    await osControls.typeString('category=websocket');
+    await delay(1000);
+    await osControls.keyTap('enter');
+
+    await delay(250);
+    await moveToAndClick(viewPage.getRowByIndex(1));
+
+    await delay(500);
+    const webSocketCard = viewPage.getCard('Web Socket Messages');
+    await moveToAndClick(webSocketCard.getMessageRowByIndex(1));
+    await delay(2000);
+
+    // --- Create a rule to mock images
+
+    await moveToAndClick(viewPage.getFilterBox());
+    await delay(500);
+    await osControls.keyTap('backspace');
+    await osControls.typeString('path*=webp');
+    await delay(1000);
+    await osControls.keyTap('enter');
+
+    await delay(100);
+    const imageRow = viewPage.getRowByIndex(4);
+    await moveToAndClick(imageRow);
+
+    await delay(120_000);
     return results;
 }, {
     setup: async () => {
@@ -80,7 +174,11 @@ await runDemo('android', async (page) => {
         }
         await startAppium();
         androidSession = await getAppiumSession();
-        console.log('Initial activity', await androidSession.getCurrentActivity());
+        android = new AndroidDevice(androidSession);
+
+        await resetApp('com.netflix.mediaclient');
+        await android.pressHomeButton();
+
         if (RECORD_DEVICE) await startAndroidRecording();
     },
     cleanup: async () => {
@@ -88,9 +186,8 @@ await runDemo('android', async (page) => {
 
         // Reset the connected device to the initial state
         if (android) {
-            await disconnectVpn();
-            await delay(50);
-            await android.pressHomeButton();
+            console.log('Resetting Android device...');
+            await disconnectVpn().catch(() => {});
         }
 
         if (androidSession) {
