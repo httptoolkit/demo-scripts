@@ -28,7 +28,8 @@ await runDemo('curl', async (page) => {
     });
 
     await htk.isLoaded();
-    osControls.setMouse(htkWindow.position.x - 20, htkWindow.position.y + 100);
+    osControls.setMouse(htkWindow.position.x - 20, htkWindow.position.y + 150);
+    results.clipsToCut.push([0, Date.now() - startTime]);
 
     await delay(500);
 

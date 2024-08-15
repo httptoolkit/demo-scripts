@@ -63,7 +63,8 @@ export async function runDemo(
     try {
         const startTime = Date.now();
         demoResults = await demo(page);
-        demoResults.clipsToCut.push([Date.now() - startTime, Infinity]);
+        // Not sure why but we seem to consistently end up with a leftover 2 seconds at the end
+        demoResults.clipsToCut.push([Date.now() - 2000 - startTime, Infinity]);
         console.log(demoResults);
         if (RECORD_VIDEO) {
             await fs.writeFile(`${recordingName}.json`, JSON.stringify(demoResults, null, 2));
