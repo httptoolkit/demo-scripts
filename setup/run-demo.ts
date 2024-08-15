@@ -3,6 +3,7 @@ import { Page } from 'playwright';
 
 import { recordScreen, trimVideoParts } from './video.js';
 import { CHROME_TOP_HEIGHT, launchChrome } from './browser.js';
+import { setDarkMode } from './dark-mode.js';
 
 export interface DemoResult {
     clipsToCut: Array<[start: number, end: number]>;
@@ -36,6 +37,7 @@ export async function runDemo(
     }
 
     const RECORD_VIDEO = process.env.RECORD_VIDEO === 'true';
+    setDarkMode();
 
     const { browser, page } = await launchChrome(
         URL,
