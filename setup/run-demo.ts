@@ -14,7 +14,7 @@ export async function runDemo(
     demo: (page: Page) => Promise<DemoResult>,
     options: {
         setup?: () => Promise<void>,
-        cleanup?: () => Promise<void>
+        cleanup?: (result?: DemoResult) => Promise<void>
     } = {}
 ) {
     const TOP = 150;
@@ -61,12 +61,10 @@ export async function runDemo(
 
     console.log("Starting demo");
 
-    let demoResults: DemoResult;
+    let demoResults: DemoResult | undefined;
     try {
         const startTime = Date.now();
         demoResults = await demo(page);
-        // Not sure why but we seem to consistently end up with a leftover 2 seconds at the end
-        demoResults.clipsToCut.push([Date.now() - 2000 - startTime, Infinity]);
         console.log(demoResults);
         if (RECORD_VIDEO) {
             await fs.writeFile(`${recordingName}.json`, JSON.stringify(demoResults, null, 2));
@@ -74,7 +72,7 @@ export async function runDemo(
     } finally {
         console.log("Demo completed");
         if (RECORD_VIDEO) await recording.stop();
-        await options.cleanup?.().catch(() => {});
+        await options.cleanup?.(demoResults).catch(() => {});
     }
 
     await browser.close();

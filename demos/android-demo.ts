@@ -22,6 +22,7 @@ import { getDarkModeState } from '../setup/dark-mode.js';
 import { OsWindow, getOsControls } from '../os/index.js';
 import { HttpToolkit } from '../pages/httptoolkit.js';
 import { AndroidDevice, By } from '../pages/android-device.js';
+import { trimVideoParts } from '../setup/video.js';
 
 
 const osControls = getOsControls();
@@ -30,6 +31,7 @@ let androidSession: AndroidSession;
 let android: AndroidDevice;
 
 const RECORD_DEVICE = process.env.RECORD_VIDEO === 'true';
+const DEVICE_VIDEO_FILENAME = `android-device-${new Date().toISOString().replace(/:/g, '-')}.mp4`;
 
 await runDemo('android', async (page) => {
     const startTime = Date.now();
@@ -344,8 +346,8 @@ await runDemo('android', async (page) => {
 
         if (RECORD_DEVICE) await startAndroidRecording();
     },
-    cleanup: async () => {
-        if (RECORD_DEVICE) await stopAndroidRecording();
+    cleanup: async (result) => {
+        if (RECORD_DEVICE) await stopAndroidRecording(DEVICE_VIDEO_FILENAME);
 
         // Reset the connected device to the initial state
         if (android) {
@@ -363,5 +365,9 @@ await runDemo('android', async (page) => {
         console.log('Stopped appium');
 
         if (htkWindow) await osControls.closeWindow(htkWindow.id);
+
+        if (result) {
+            await trimVideoParts(DEVICE_VIDEO_FILENAME, result.clipsToCut)
+        }
     }
 });

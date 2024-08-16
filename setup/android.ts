@@ -45,11 +45,11 @@ export async function startAndroidRecording() {
     await delay(250); // There's a brief pause before recording starts
 }
 
-export async function stopAndroidRecording() {
+export async function stopAndroidRecording(filename: string) {
     await zx.$`adb shell killall -SIGINT screenrecord`;
     await pendingRecording?.catch(() => {});
     console.log('Android recording stopped');
-    await zx.$`adb pull /data/local/tmp/video.mp4 ./android-device-${new Date().toISOString().replace(/:/g, '-')}.mp4`;
+    await zx.$`adb pull /data/local/tmp/video.mp4 ${filename}`;
 }
 
 export async function setAndroidDarkMode(state: boolean | undefined) {

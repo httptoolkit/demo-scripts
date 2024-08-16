@@ -46,10 +46,11 @@ export async function trimVideoParts(filename: string, partsToRemove: [start: nu
             }
             return [...acc.slice(0, -1), [last[0], start]];
         }
-    }, [[0, Infinity]]);
+    }, [[0, Infinity]])
+    .filter(([start, end]) => Math.round(start) !== Math.round(end));
 
     const ffmpegFilter =
-        `[0:v]split${partsToKeep.map((_p, i) => `[v${i}]`).join('')};${
+        `[0:v]split=${partsToKeep.length}${partsToKeep.map((_p, i) => `[v${i}]`).join('')};${
             // ^ Split into N streams called v1, v2, ...
             // v Then, for each stream vX, clip out the correponding video part as vXtrim:
             partsToKeep.map(([start, end], i) => {
@@ -67,9 +68,13 @@ export async function trimVideoParts(filename: string, partsToRemove: [start: nu
         }).join(';')
     };${ // Join all the vXtrim streams into one output stream outv:
         partsToKeep.map((_p, i) => `[v${i}trim]`).join('')
-    }concat[outv]`;
+    }concat=${partsToKeep.length}[outv]`;
 
-    await zx.$`ffmpeg -hide_banner -loglevel error -i ${filename} -filter_complex ${
+    zx.$.verbose = true;
+    await zx.$`ffmpeg -i ${filename} -filter_complex ${
         ffmpegFilter
-    } -map "[outv]" -map 0:a ${filename + '.trimmed.mkv'}`;
+    } -map "[outv]" ${filename
+        .replace(/\.mkv$/, '.trimmed.mkv')
+        .replace(/\.mp4$/, '.trimmed.mp4')
+    }`;
 }
