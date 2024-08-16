@@ -17,7 +17,7 @@ export async function runDemo(
         cleanup?: () => Promise<void>
     } = {}
 ) {
-    const TOP = 200;
+    const TOP = 150;
     const LEFT = 50;
     const WIDTH = 1440;
     const HEIGHT = 810;

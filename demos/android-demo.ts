@@ -40,6 +40,8 @@ await runDemo('android', async (page) => {
     const htk = new HttpToolkit(page);
 
     htkWindow = await osControls.getWindowByName(/HTTP Toolkit - Chromium/);
+    await osControls.keyTap('up'); // Tap a key just to make sure the mouse is restored
+    await android.pressHomeButton();
     const moveToAndClick = buildMouseMoveClickHelper(htkWindow);
 
     await htk.isLoaded();
@@ -214,24 +216,32 @@ await runDemo('android', async (page) => {
     await moveToAndClick(htk.getSidebarButton('modify'));
     const modifyPage = await htk.goTo('modify');
 
-    await delay(1000);
-    await moveToAndClick(modifyPage.getNewRuleButton());
+    await delay(250);
+    await moveToAndClick(modifyPage.getNewRuleButton(), {
+        moveDuration: 500
+    });
 
     await delay(500);
     const newRule = (await modifyPage.getRules())[0];
 
     const matcherDropdown = newRule.getBaseMatcherDropdown();
     const getOption = await getOptionDimensions(matcherDropdown, 'GET');
-    await moveToAndClick(matcherDropdown);
+    await moveToAndClick(matcherDropdown, {
+        moveDuration: 500
+    });
 
     await delay(750);
-    await moveToAndClick(getOption);
+    await moveToAndClick(getOption, {
+        clickPause: 750
+    });
 
     const extraMatcherDropdown = newRule.getAdditionalMatcherDropdown();
     await moveToAndClick(extraMatcherDropdown);
 
     await delay(750);
-    await moveToAndClick(await getOptionDimensions(extraMatcherDropdown, 'regex-path'));
+    await moveToAndClick(await getOptionDimensions(extraMatcherDropdown, 'regex-path'), {
+        clickPause: 750
+    });
 
     await delay(100);
     await moveToAndClick(newRule.getAdditionalMatcherInput());
@@ -245,7 +255,7 @@ await runDemo('android', async (page) => {
 
     await delay(750);
     await moveToAndClick(await getOptionDimensions(handlerDropdown, 'file'), {
-        moveDuration: 250
+        clickPause: 750
     });
 
     await delay(250);
@@ -290,8 +300,6 @@ await runDemo('android', async (page) => {
     const clearFilterButton = viewPage.getClearFilterButton();
     const clearFilterButtonBounds = (await clearFilterButton.boundingBox())!;
     await moveToAndClick(clearFilterButtonBounds);
-    // Avoid tooltips with a tiny shuffle on click
-    await moveMouseTo(htkWindow, { ...clearFilterButtonBounds, x: clearFilterButtonBounds.x + 16 }, 0);
 
     await delay(1000);
 
@@ -319,6 +327,7 @@ await runDemo('android', async (page) => {
 
     await delay(2000);
     await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
+    await delay(1000);
     return results;
 }, {
     setup: async () => {
@@ -330,8 +339,8 @@ await runDemo('android', async (page) => {
         androidSession = await getAppiumSession();
         android = new AndroidDevice(androidSession);
 
-        await resetApp('com.netflix.mediaclient');
         await android.pressHomeButton();
+        await resetApp('com.netflix.mediaclient');
 
         if (RECORD_DEVICE) await startAndroidRecording();
     },

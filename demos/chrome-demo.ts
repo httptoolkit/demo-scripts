@@ -24,6 +24,7 @@ await runDemo('chrome', async (page) => {
     const htk = new HttpToolkit(page);
 
     htkWindow = await osControls.getWindowByName(/HTTP Toolkit - Chromium/);
+    await osControls.keyTap('up'); // Tap a key just to make sure the mouse is restored
     const moveToAndClick = buildMouseMoveClickHelper(htkWindow);
 
     await htk.isLoaded();
@@ -206,6 +207,7 @@ await runDemo('chrome', async (page) => {
 
     await osControls.focusWindow(htkWindow.id);
     await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
+    await delay(1000);
 
     return results;
 }, {
