@@ -1,7 +1,11 @@
 import { delay } from '@httptoolkit/util';
 
 import { runDemo } from '../setup/run-demo.js';
-import { buildMouseMoveClickHelper, getOptionDimensions, moveMouseTo } from '../setup/browser.js';
+import {
+    buildMouseMoveClickHelper,
+    getOptionDimensions,
+    moveMouseTo
+} from '../setup/browser.js';
 import {
     AndroidSession,
     getAppiumSession,
@@ -54,11 +58,17 @@ await runDemo('android', async (page) => {
 
     await osControls.typeString('android');
 
-    await moveToAndClick(interceptPage.getInterceptorButton('Android Device via ADB'), {
+    const androidButton = interceptPage.getInterceptorButton('Android Device via ADB');
+    const androidButtonDimensions = await androidButton.boundingBox();
+    await moveToAndClick({
+        ...androidButtonDimensions!,
+        // We very mildly tweak the positioning to avoid tooltips later
+        x: androidButtonDimensions!.x - 5
+    }, {
         clickPause: 400
     });
 
-    await delay(5_000);
+    await delay(8000);
 
     // --- Create some traffic on-device ---
 
@@ -68,30 +78,46 @@ await runDemo('android', async (page) => {
 
     const netflixHomeIcon = await android.get(By.text("Netflix"));
     await netflixHomeIcon.click();
-    await delay(2250);
+    await delay(2300);
 
     const netflixOpenTime = Date.now();
     await (await android.get(By.contentDescription("select Tim"))).click();
-    await delay(1500);
+    await delay(1000);
     const netflixReadyTime = Date.now();
     results.clipsToCut.push([netflixOpenTime - startTime, netflixReadyTime - startTime]);
 
-    await delay(1000);
+    await delay(3000);
 
     const screenSize = await android.getScreenSize();
     await android.touchMove(
-        { x: screenSize.width / 2, y: screenSize.height * 2/3 },
-        { x: screenSize.width / 2, y: screenSize.height * 1/3 },
+        { x: screenSize.width / 2, y: 2000 },
+        { x: screenSize.width / 2, y: 500 },
+        { duration: 250 }
+    );
+    await android.touchMove(
+        { x: screenSize.width / 2, y: 2000 },
+        { x: screenSize.width / 2, y: 500 },
+        { duration: 250 }
+    );
+
+    await delay(500);
+    let rows = await android.getAll(By.widgetChain("android.widget.GridView"));
+
+    let rowDimensions = await android.getElementDimensions(rows[3]);
+    await android.touchMove(
+        {
+            x: rowDimensions.x + rowDimensions.width * 3/4,
+            y: rowDimensions.y + rowDimensions.height / 2
+        },
+        {
+            x: rowDimensions.x + rowDimensions.width * 1/4,
+            y: rowDimensions.y + rowDimensions.height / 2
+        },
         { duration: 500 }
     );
 
     await delay(500);
-    const rows = (await android.getAll(By.widgetChain(
-        "android.widget.GridView",
-        "android.widget.LinearLayout"
-    )));
 
-    const rowDimensions = await android.getElementDimensions(rows[0]);
     await android.touchMove(
         {
             x: rowDimensions.x + rowDimensions.width * 3/4,
@@ -125,14 +151,23 @@ await runDemo('android', async (page) => {
     await moveToAndClick(urlSectionButton);
 
     await delay(500);
-    await osControls.scrollMouse({ y: -200 }, 500);
+    await osControls.scrollMouse({ y: -200 }, 200);
 
-    await delay(1000);
+    await delay(2000);
 
-    await osControls.scrollMouse({ y: 200 }, 250);
+    await osControls.scrollMouse({ y: 200 }, 100);
     await moveToAndClick(requestCard.getTitle());
     await delay(1000);
-    await moveToAndClick(viewPage.getCard('Response').getTitle());
+
+    let responseCollapsed = false;
+
+    const editor = viewPage.getCard('Request Body').getEditor();
+    if (await editor.getEditorChunk('currentCountryQuery').isVisible()) {
+        await moveToAndClick(viewPage.getCard('Response').getTitle());
+        responseCollapsed = true;
+    } else {
+        await moveToAndClick(editor.getFoldButtons().nth(2));
+    }
 
     await delay(2000);
 
@@ -146,12 +181,16 @@ await runDemo('android', async (page) => {
     await delay(250);
     await moveToAndClick(viewPage.getRowByIndex(1));
 
+    if (!responseCollapsed) {
+        await delay(500);
+        await moveToAndClick(viewPage.getCard('Response').getTitle());
+        responseCollapsed = true;
+    }
+
     await delay(500);
     const webSocketCard = viewPage.getCard('Web Socket Messages');
     await moveToAndClick(webSocketCard.getMessageRowByIndex(1));
     await delay(2000);
-
-    // --- Create a rule to mock images
 
     await moveToAndClick(viewPage.getFilterBox());
     await delay(500);
@@ -161,10 +200,125 @@ await runDemo('android', async (page) => {
     await osControls.keyTap('enter');
 
     await delay(100);
-    const imageRow = viewPage.getRowByIndex(4);
+    const imageRow = viewPage.getRowByIndex(35);
     await moveToAndClick(imageRow);
+    await delay(500);
+    await osControls.keyTap('down');
+    await delay(500);
+    await osControls.keyTap('down');
 
-    await delay(120_000);
+    await delay(2000);
+
+    // --- Create a rule to mock images
+
+    await moveToAndClick(htk.getSidebarButton('modify'));
+    const modifyPage = await htk.goTo('modify');
+
+    await delay(1000);
+    await moveToAndClick(modifyPage.getNewRuleButton());
+
+    await delay(500);
+    const newRule = (await modifyPage.getRules())[0];
+
+    const matcherDropdown = newRule.getBaseMatcherDropdown();
+    const getOption = await getOptionDimensions(matcherDropdown, 'GET');
+    await moveToAndClick(matcherDropdown);
+
+    await delay(750);
+    await moveToAndClick(getOption);
+
+    const extraMatcherDropdown = newRule.getAdditionalMatcherDropdown();
+    await moveToAndClick(extraMatcherDropdown);
+
+    await delay(750);
+    await moveToAndClick(await getOptionDimensions(extraMatcherDropdown, 'regex-path'));
+
+    await delay(100);
+    await moveToAndClick(newRule.getAdditionalMatcherInput());
+    await osControls.typeString('.*\.(webp|png)', { duration: 750 });
+    await delay(250);
+    await moveToAndClick(newRule.getAdditionalMatcherAddButton());
+
+    await delay(250);
+    const handlerDropdown = newRule.getBaseHandlerDropdown();
+    await moveToAndClick(handlerDropdown);
+
+    await delay(750);
+    await moveToAndClick(await getOptionDimensions(handlerDropdown, 'file'), {
+        moveDuration: 250
+    });
+
+    await delay(250);
+    await moveToAndClick(newRule.getHandlerInputs().nth(2));
+    await osControls.typeString('content-type', { duration: 500 });
+
+    await delay(250);
+    await moveToAndClick(newRule.getHandlerInputs().nth(3));
+    await osControls.typeString('image/png', { duration: 500 });
+
+    // --- IMPORTANT ---
+    // This file selection doesn't actually work in Chrome with the normal UI
+    // build, since it requires path picking. It requires a UI patch to hardcode
+    // the file path, which is easy (FromFileResponseHandlerConfig->selectFile,
+    // change to arraybuffer + then hardcode a path as result) but it's not
+    // expected to work totally automatically unfortunately.
+    // ------------
+    await delay(250);
+    await moveToAndClick(newRule.getHandlerButton('Select file'));
+
+    await delay(500);
+    await osControls.typeString('b', { restoreCursor: false });
+    await delay(1000);
+    await osControls.keyTap('enter');
+
+    await delay(500);
+    await moveToAndClick(newRule.getRenameButton());
+    await delay(250);
+    await osControls.typeString('Swap all images for smiley faces', { duration: 1000 });
+    await moveToAndClick(newRule.getSaveButton(), {
+        clickPause: 1000
+    });
+
+    await delay(1000);
+
+    // --- Scroll through more images
+
+    await moveToAndClick(htk.getSidebarButton('view'));
+
+    await delay(500);
+
+    const clearFilterButton = viewPage.getClearFilterButton();
+    const clearFilterButtonBounds = (await clearFilterButton.boundingBox())!;
+    await moveToAndClick(clearFilterButtonBounds);
+    // Avoid tooltips with a tiny shuffle on click
+    await moveMouseTo(htkWindow, { ...clearFilterButtonBounds, x: clearFilterButtonBounds.x + 16 }, 0);
+
+    await delay(1000);
+
+    await android.touchMove(
+        { x: screenSize.width / 2, y: 2000 },
+        { x: screenSize.width / 2, y: 500 },
+        { duration: 250 }
+    );
+
+    await delay(1000);
+
+    rows = (await android.getAll(By.widgetChain("android.widget.GridView")));
+    rowDimensions = await android.getElementDimensions(rows[3]);
+    await android.touchMove(
+        {
+            x: rowDimensions.x + rowDimensions.width * 3/4,
+            y: rowDimensions.y + rowDimensions.height / 2
+        },
+        {
+            x: rowDimensions.x + rowDimensions.width * 1/4,
+            y: rowDimensions.y + rowDimensions.height / 2
+        },
+        { duration: 500 }
+    );
+
+    await delay(2000);
+    await moveMouseTo(htkWindow, htk.getSidebarButton('intercept'), 500);
     return results;
 }, {
     setup: async () => {

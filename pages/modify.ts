@@ -58,4 +58,16 @@ class Rule {
         return this.rule.getByTitle('Save changes');
     }
 
+    getRenameButton() {
+        return this.rule.getByTitle('Give this rule a custom name');
+    }
+
+    getHandlerInputs() {
+        return this.handlerSection.locator('input');
+    }
+
+    getHandlerButton(text: string) {
+        return this.handlerSection.getByRole('button', { name: text });
+    }
+
 }

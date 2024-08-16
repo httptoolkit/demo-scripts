@@ -59,6 +59,7 @@ export async function keyTap(key: string, options: {
     const keyCode = ({
         'enter': '36',
         'up': '126',
+        'down': '125',
         'backspace': '51',
         'end': '119',
     } as const)[key];

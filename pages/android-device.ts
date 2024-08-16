@@ -16,7 +16,7 @@ export abstract class By {
     static widgetChain(...widgetTypes: string[]) {
         return [
             uiSelector(`className("${widgetTypes[0]}")`),
-            widgetTypes.slice(1).map((type) =>
+            ...widgetTypes.slice(1).map((type) =>
                 `childSelector(${uiSelector(`className("${type}")`)})`
             )
         ].join('.');

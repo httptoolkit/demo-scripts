@@ -31,7 +31,9 @@ export function getAppiumSession(): Promise<AndroidSession> {
             platformName: "android",
             "appium:automationName": "uiautomator2",
             "appium:noReset": true,
-            "appium:fullReset": false
+            "appium:fullReset": false,
+            // Don't stop the session after 60 seconds:
+            "appium:newCommandTimeout": 999999,
         }
     });
 }

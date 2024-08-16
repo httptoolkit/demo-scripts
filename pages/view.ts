@@ -28,6 +28,10 @@ export class ViewPage {
         return this.page.getByLabel('filter the requests');
     }
 
+    getClearFilterButton() {
+        return this.page.getByRole('button', { name: 'Clear all search filters' });
+    }
+
     getCard(name: CardName) {
         return new Card(this.page.locator(`section[aria-label="${name} section"]`));
     }
